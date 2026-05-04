@@ -2,23 +2,30 @@
 <html lang="uk">
 <head><meta charset="UTF-8"><title>Розклад</title><link rel="stylesheet" href="style.css"></head>
 <body>
-    <header><h1>📅 Розклад поїздів</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="route.html">Маршрут</a><a href="contacts.html">Контакти</a><a href="admin.html">Адмін</a></nav></header>
+    <header><h1>📅 Розклад поїздів</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="route.html">Маршрут</a><a href="contacts.html">Контакти</a><a href="login.html">Вхід</a><a href="register.html">Реєстрація</a><a href="profile.html">Кабінет</a><a href="admin.html">Адмін</a></nav></header>
     <main>
         <h2>🔍 Пошук квитків</h2>
-        <input type="text" id="searchFrom" placeholder="Звідки (напр. Київ)">
-        <input type="text" id="searchTo" placeholder="Куди (напр. Львів)">
+        <input type="text" id="searchFrom" placeholder="Звідки">
+        <input type="text" id="searchTo" placeholder="Куди">
+        <input type="date" id="searchDate">
         <button onclick="searchRoutes()">🔍 Пошук</button>
         <div id="searchResults"></div>
         <h2>📋 Всі маршрути</h2>
         <table><thead><tr><th>Звідки</th><th>Куди</th><th>Час</th><th>Ціна</th><th>Дія</th></tr></thead><tbody id="routesList"></tbody></table>
     </main>
+    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
     <script src="main.js"></script>
     <script>
         function showAllRoutes() {
             const tbody = document.getElementById("routesList");
             const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
-            tbody.innerHTML = routes.map(r => `<tr><td>${r.from}</td><td>${r.to}</td><td>${r.time}</td><td>${r.price} грн</td><td><button onclick="buyTicket(${r.id})">Купити</button></td></tr>`).join("");
+            tbody.innerHTML = routes.map(r => `<tr><td>${r.from}</td><td>${r.to}</td><td>${r.time}</td><td>${r.price} грн</td><td><button onclick="buyTicket(${r.id})">Купити</button></td></tr>`).join('');
         }
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         showAllRoutes();
     </script>
 </body>
