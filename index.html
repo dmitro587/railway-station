@@ -6,41 +6,22 @@
     <title>Залізничний вокзал</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .stops-list {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(0,0,0,0.05);
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .stop-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            margin: 5px 0;
-            background: rgba(0,102,204,0.1);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .stop-item:hover {
-            background: rgba(0,102,204,0.2);
-            transform: translateX(5px);
-        }
-        .stop-name { font-weight: bold; }
-        .stop-price { color: #0066cc; font-weight: bold; }
-        .stop-time { color: #666; font-size: 12px; }
-        body.dark .stop-item { background: rgba(233,69,96,0.1); }
-        body.dark .stop-price { color: #e94560; }
-        .route-header {
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .filter-section { background: var(--card); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 15px; }
+        .filter-row input, .filter-row select { padding: 8px; border-radius: 5px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        .price-slider { width: 200px; }
+        .sort-buttons { display: flex; gap: 10px; }
+        .sort-btn { background: var(--btn); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .rating { color: #ffc107; font-size: 14px; }
+        .stops-list { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px; font-size: 14px; display: none; }
+        .stop-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; margin: 5px 0; background: rgba(0,102,204,0.1); border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        .stop-item:hover { background: rgba(0,102,204,0.2); transform: translateX(5px); }
+        .route-header { cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .toggle-stops { background: none; padding: 5px 10px; font-size: 12px; }
+        @media (max-width: 768px) { .filter-row { flex-direction: column; align-items: stretch; } .price-slider { width: 100%; } }
     </style>
 </head>
 <body>
@@ -59,6 +40,24 @@
         </nav>
     </header>
     <main>
+        <div class="filter-section">
+            <h3>🔍 Фільтр маршрутів</h3>
+            <div class="filter-row">
+                <input type="text" id="filterFrom" placeholder="Звідки" style="flex:1">
+                <input type="text" id="filterTo" placeholder="Куди" style="flex:1">
+                <input type="date" id="filterDate" style="flex:1">
+                <div style="flex:2">
+                    <label>💰 Ціна: <span id="priceValue">0-1000</span> грн</label>
+                    <input type="range" id="priceFilter" min="0" max="1000" step="50" value="1000" class="price-slider" style="width:100%">
+                </div>
+                <div class="sort-buttons">
+                    <span>Сортувати:</span>
+                    <button class="sort-btn" onclick="sortRoutes('price')">💰 За ціною</button>
+                    <button class="sort-btn" onclick="sortRoutes('time')">🕐 За часом</button>
+                    <button class="sort-btn" onclick="sortRoutes('rating')">⭐ За рейтингом</button>
+                </div>
+            </div>
+        </div>
         <h2>⭐ Популярні маршрути</h2>
         <div id="popular-routes"></div>
         <div id="userStatus" class="route-card"></div>
@@ -66,103 +65,213 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
-        // Всі 50 маршрутів
-        const routes = [
-            { id: 1, from: "Київ", to: "Львів", price: 450, time: "08:00", duration: "5 год", stops: [{name:"Київ",price:0,time:"08:00"},{name:"Житомир",price:120,time:"09:30"},{name:"Рівне",price:250,time:"11:00"},{name:"Львів",price:450,time:"13:00"}] },
-            { id: 2, from: "Київ", to: "Одеса", price: 420, time: "09:30", duration: "4.5 год", stops: [{name:"Київ",price:0,time:"09:30"},{name:"Біла Церква",price:100,time:"10:45"},{name:"Умань",price:200,time:"12:00"},{name:"Одеса",price:420,time:"14:00"}] },
-            { id: 3, from: "Київ", to: "Харків", price: 380, time: "07:15", duration: "4.5 год", stops: [{name:"Київ",price:0,time:"07:15"},{name:"Полтава",price:220,time:"09:30"},{name:"Харків",price:380,time:"11:45"}] },
-            { id: 4, from: "Київ", to: "Дніпро", price: 350, time: "10:00", duration: "4 год", stops: [{name:"Київ",price:0,time:"10:00"},{name:"Кременчук",price:200,time:"12:00"},{name:"Дніпро",price:350,time:"14:00"}] },
-            { id: 5, from: "Київ", to: "Запоріжжя", price: 400, time: "11:30", duration: "5 год", stops: [{name:"Київ",price:0,time:"11:30"},{name:"Кременчук",price:200,time:"13:30"},{name:"Дніпро",price:300,time:"15:00"},{name:"Запоріжжя",price:400,time:"16:30"}] },
-            { id: 6, from: "Київ", to: "Вінниця", price: 280, time: "12:45", duration: "2.5 год", stops: [{name:"Київ",price:0,time:"12:45"},{name:"Фастів",price:80,time:"13:30"},{name:"Вінниця",price:280,time:"15:15"}] },
-            { id: 7, from: "Київ", to: "Житомир", price: 200, time: "14:00", duration: "1.5 год", stops: [{name:"Київ",price:0,time:"14:00"},{name:"Житомир",price:200,time:"15:30"}] },
-            { id: 8, from: "Київ", to: "Чернігів", price: 220, time: "15:30", duration: "2 год", stops: [{name:"Київ",price:0,time:"15:30"},{name:"Чернігів",price:220,time:"17:30"}] },
-            { id: 9, from: "Київ", to: "Суми", price: 320, time: "08:45", duration: "3.5 год", stops: [{name:"Київ",price:0,time:"08:45"},{name:"Ніжин",price:120,time:"10:00"},{name:"Бахмач",price:200,time:"11:00"},{name:"Суми",price:320,time:"12:15"}] },
-            { id: 10, from: "Київ", to: "Полтава", price: 300, time: "16:20", duration: "3 год", stops: [{name:"Київ",price:0,time:"16:20"},{name:"Полтава",price:300,time:"19:20"}] },
-            { id: 11, from: "Львів", to: "Київ", price: 460, time: "07:00", duration: "5.5 год", stops: [{name:"Львів",price:0,time:"07:00"},{name:"Рівне",price:200,time:"08:30"},{name:"Житомир",price:320,time:"10:00"},{name:"Київ",price:460,time:"12:30"}] },
-            { id: 12, from: "Львів", to: "Ужгород", price: 350, time: "08:30", duration: "3.5 год", stops: [{name:"Львів",price:0,time:"08:30"},{name:"Стрий",price:80,time:"09:15"},{name:"Мукачево",price:250,time:"10:30"},{name:"Ужгород",price:350,time:"12:00"}] },
-            { id: 13, from: "Львів", to: "Івано-Франківськ", price: 280, time: "10:00", duration: "2.5 год", stops: [{name:"Львів",price:0,time:"10:00"},{name:"Галич",price:150,time:"11:30"},{name:"Івано-Франківськ",price:280,time:"12:30"}] },
-            { id: 14, from: "Львів", to: "Тернопіль", price: 220, time: "11:30", duration: "2 год", stops: [{name:"Львів",price:0,time:"11:30"},{name:"Золочів",price:100,time:"12:30"},{name:"Тернопіль",price:220,time:"13:30"}] },
-            { id: 15, from: "Львів", to: "Луцьк", price: 250, time: "13:00", duration: "2.5 год", stops: [{name:"Львів",price:0,time:"13:00"},{name:"Червоноград",price:120,time:"14:15"},{name:"Луцьк",price:250,time:"15:30"}] },
-            { id: 16, from: "Львів", to: "Рівне", price: 280, time: "14:30", duration: "2.5 год", stops: [{name:"Львів",price:0,time:"14:30"},{name:"Рівне",price:280,time:"17:00"}] },
-            { id: 17, from: "Львів", to: "Хмельницький", price: 300, time: "15:45", duration: "3 год", stops: [{name:"Львів",price:0,time:"15:45"},{name:"Тернопіль",price:150,time:"17:30"},{name:"Хмельницький",price:300,time:"18:45"}] },
-            { id: 18, from: "Львів", to: "Чернівці", price: 320, time: "17:00", duration: "3.5 год", stops: [{name:"Львів",price:0,time:"17:00"},{name:"Івано-Франківськ",price:180,time:"18:45"},{name:"Чернівці",price:320,time:"20:30"}] },
-            { id: 19, from: "Львів", to: "Одеса", price: 550, time: "20:00", duration: "9.5 год", stops: [{name:"Львів",price:0,time:"20:00"},{name:"Тернопіль",price:150,time:"21:30"},{name:"Хмельницький",price:250,time:"22:30"},{name:"Вінниця",price:350,time:"01:00"},{name:"Одеса",price:550,time:"05:30"}] },
-            { id: 20, from: "Львів", to: "Харків", price: 650, time: "22:00", duration: "11 год", stops: [{name:"Львів",price:0,time:"22:00"},{name:"Тернопіль",price:120,time:"23:30"},{name:"Вінниця",price:280,time:"02:00"},{name:"Київ",price:420,time:"05:00"},{name:"Харків",price:650,time:"09:00"}] },
-            { id: 21, from: "Харків", to: "Київ", price: 400, time: "06:30", duration: "4.5 год", stops: [{name:"Харків",price:0,time:"06:30"},{name:"Полтава",price:160,time:"08:00"},{name:"Київ",price:400,time:"11:00"}] },
-            { id: 22, from: "Харків", to: "Дніпро", price: 280, time: "08:00", duration: "2.5 год", stops: [{name:"Харків",price:0,time:"08:00"},{name:"Дніпро",price:280,time:"10:30"}] },
-            { id: 23, from: "Харків", to: "Одеса", price: 520, time: "10:30", duration: "6 год", stops: [{name:"Харків",price:0,time:"10:30"},{name:"Дніпро",price:160,time:"12:30"},{name:"Запоріжжя",price:280,time:"13:30"},{name:"Миколаїв",price:420,time:"15:00"},{name:"Одеса",price:520,time:"16:30"}] },
-            { id: 24, from: "Харків", to: "Запоріжжя", price: 320, time: "09:30", duration: "3 год", stops: [{name:"Харків",price:0,time:"09:30"},{name:"Дніпро",price:180,time:"11:00"},{name:"Запоріжжя",price:320,time:"12:30"}] },
-            { id: 25, from: "Харків", to: "Суми", price: 250, time: "14:00", duration: "2.5 год", stops: [{name:"Харків",price:0,time:"14:00"},{name:"Суми",price:250,time:"16:30"}] },
-            { id: 26, from: "Харків", to: "Полтава", price: 220, time: "15:30", duration: "2 год", stops: [{name:"Харків",price:0,time:"15:30"},{name:"Полтава",price:220,time:"17:30"}] },
-            { id: 27, from: "Харків", to: "Луганськ", price: 350, time: "12:30", duration: "4 год", stops: [{name:"Харків",price:0,time:"12:30"},{name:"Ізюм",price:120,time:"13:45"},{name:"Слов'янськ",price:200,time:"14:30"},{name:"Луганськ",price:350,time:"16:30"}] },
-            { id: 28, from: "Харків", to: "Донецьк", price: 300, time: "11:00", duration: "3.5 год", stops: [{name:"Харків",price:0,time:"11:00"},{name:"Слов'янськ",price:150,time:"12:30"},{name:"Краматорськ",price:220,time:"13:00"},{name:"Донецьк",price:300,time:"14:30"}] },
-            { id: 29, from: "Харків", to: "Львів", price: 650, time: "21:00", duration: "11 год", stops: [{name:"Харків",price:0,time:"21:00"},{name:"Київ",price:380,time:"01:00"},{name:"Львів",price:650,time:"08:00"}] },
-            { id: 30, from: "Харків", to: "Ужгород", price: 680, time: "20:00", duration: "12 год", stops: [{name:"Харків",price:0,time:"20:00"},{name:"Київ",price:380,time:"00:00"},{name:"Львів",price:580,time:"07:00"},{name:"Ужгород",price:680,time:"08:00"}] },
-            { id: 31, from: "Одеса", to: "Київ", price: 440, time: "08:00", duration: "5 год", stops: [{name:"Одеса",price:0,time:"08:00"},{name:"Умань",price:220,time:"10:00"},{name:"Біла Церква",price:340,time:"11:30"},{name:"Київ",price:440,time:"13:00"}] },
-            { id: 32, from: "Одеса", to: "Миколаїв", price: 180, time: "09:30", duration: "1.5 год", stops: [{name:"Одеса",price:0,time:"09:30"},{name:"Миколаїв",price:180,time:"11:00"}] },
-            { id: 33, from: "Одеса", to: "Херсон", price: 220, time: "11:00", duration: "2 год", stops: [{name:"Одеса",price:0,time:"11:00"},{name:"Херсон",price:220,time:"13:00"}] },
-            { id: 34, from: "Одеса", to: "Запоріжжя", price: 350, time: "12:30", duration: "3.5 год", stops: [{name:"Одеса",price:0,time:"12:30"},{name:"Миколаїв",price:120,time:"13:30"},{name:"Херсон",price:200,time:"14:30"},{name:"Запоріжжя",price:350,time:"16:00"}] },
-            { id: 35, from: "Одеса", to: "Вінниця", price: 380, time: "14:00", duration: "4.5 год", stops: [{name:"Одеса",price:0,time:"14:00"},{name:"Умань",price:200,time:"16:00"},{name:"Вінниця",price:380,time:"18:30"}] },
-            { id: 36, from: "Одеса", to: "Кропивницький", price: 320, time: "15:30", duration: "3 год", stops: [{name:"Одеса",price:0,time:"15:30"},{name:"Кропивницький",price:320,time:"18:30"}] },
-            { id: 37, from: "Дніпро", to: "Львів", price: 580, time: "20:00", duration: "10 год", stops: [{name:"Дніпро",price:0,time:"20:00"},{name:"Кременчук",price:150,time:"21:30"},{name:"Кропивницький",price:250,time:"23:00"},{name:"Вінниця",price:400,time:"02:00"},{name:"Львів",price:580,time:"06:00"}] },
-            { id: 38, from: "Дніпро", to: "Одеса", price: 420, time: "13:30", duration: "5 год", stops: [{name:"Дніпро",price:0,time:"13:30"},{name:"Миколаїв",price:300,time:"16:00"},{name:"Одеса",price:420,time:"18:30"}] },
-            { id: 39, from: "Запоріжжя", to: "Львів", price: 620, time: "19:00", duration: "11 год", stops: [{name:"Запоріжжя",price:0,time:"19:00"},{name:"Дніпро",price:150,time:"20:30"},{name:"Кропивницький",price:300,time:"22:30"},{name:"Вінниця",price:450,time:"01:30"},{name:"Львів",price:620,time:"06:00"}] },
-            { id: 40, from: "Вінниця", to: "Львів", price: 350, time: "09:00", duration: "4 год", stops: [{name:"Вінниця",price:0,time:"09:00"},{name:"Хмельницький",price:150,time:"10:30"},{name:"Тернопіль",price:250,time:"12:00"},{name:"Львів",price:350,time:"13:00"}] },
-            { id: 41, from: "Вінниця", to: "Одеса", price: 380, time: "11:00", duration: "4.5 год", stops: [{name:"Вінниця",price:0,time:"11:00"},{name:"Умань",price:200,time:"13:00"},{name:"Одеса",price:380,time:"15:30"}] },
-            { id: 42, from: "Чернівці", to: "Київ", price: 450, time: "08:00", duration: "6 год", stops: [{name:"Чернівці",price:0,time:"08:00"},{name:"Івано-Франківськ",price:150,time:"09:30"},{name:"Тернопіль",price:250,time:"11:00"},{name:"Житомир",price:350,time:"13:00"},{name:"Київ",price:450,time:"14:00"}] },
-            { id: 43, from: "Ужгород", to: "Київ", price: 580, time: "06:00", duration: "8 год", stops: [{name:"Ужгород",price:0,time:"06:00"},{name:"Мукачево",price:100,time:"06:45"},{name:"Стрий",price:200,time:"08:00"},{name:"Львів",price:280,time:"09:00"},{name:"Тернопіль",price:380,time:"11:00"},{name:"Київ",price:580,time:"14:00"}] },
-            { id: 44, from: "Івано-Франківськ", to: "Київ", price: 480, time: "07:00", duration: "6.5 год", stops: [{name:"Івано-Франківськ",price:0,time:"07:00"},{name:"Галич",price:80,time:"07:30"},{name:"Тернопіль",price:200,time:"09:00"},{name:"Житомир",price:350,time:"11:30"},{name:"Київ",price:480,time:"13:30"}] },
-            { id: 45, from: "Луцьк", to: "Київ", price: 400, time: "08:30", duration: "5 год", stops: [{name:"Луцьк",price:0,time:"08:30"},{name:"Рівне",price:120,time:"09:30"},{name:"Житомир",price:250,time:"11:00"},{name:"Київ",price:400,time:"13:30"}] },
-            { id: 46, from: "Рівне", to: "Київ", price: 380, time: "09:00", duration: "4.5 год", stops: [{name:"Рівне",price:0,time:"09:00"},{name:"Житомир",price:180,time:"10:30"},{name:"Київ",price:380,time:"13:30"}] },
-            { id: 47, from: "Тернопіль", to: "Київ", price: 400, time: "10:00", duration: "5 год", stops: [{name:"Тернопіль",price:0,time:"10:00"},{name:"Хмельницький",price:120,time:"11:15"},{name:"Вінниця",price:220,time:"12:45"},{name:"Фастів",price:320,time:"14:15"},{name:"Київ",price:400,time:"15:00"}] },
-            { id: 48, from: "Хмельницький", to: "Київ", price: 320, time: "07:30", duration: "3.5 год", stops: [{name:"Хмельницький",price:0,time:"07:30"},{name:"Вінниця",price:150,time:"09:00"},{name:"Фастів",price:250,time:"10:30"},{name:"Київ",price:320,time:"11:00"}] },
-            { id: 49, from: "Чернігів", to: "Одеса", price: 480, time: "08:30", duration: "6.5 год", stops: [{name:"Чернігів",price:0,time:"08:30"},{name:"Київ",price:220,time:"10:30"},{name:"Біла Церква",price:320,time:"12:00"},{name:"Умань",price:400,time:"13:30"},{name:"Одеса",price:480,time:"15:00"}] },
-            { id: 50, from: "Суми", to: "Миколаїв", price: 460, time: "09:00", duration: "6 год", stops: [{name:"Суми",price:0,time:"09:00"},{name:"Полтава",price:150,time:"10:30"},{name:"Кременчук",price:250,time:"12:00"},{name:"Кропивницький",price:350,time:"13:30"},{name:"Миколаїв",price:460,time:"15:00"}] }
+        // 50 маршрутів з рейтингами
+        let routes = [
+            { id:1, from:"Київ", to:"Львів", price:450, time:"08:00", duration:"5 год", rating:4.5, stops:[{name:"Київ",price:0,time:"08:00"},{name:"Житомир",price:120,time:"09:30"},{name:"Рівне",price:250,time:"11:00"},{name:"Львів",price:450,time:"13:00"}] },
+            { id:2, from:"Київ", to:"Одеса", price:420, time:"09:30", duration:"4.5 год", rating:4.8, stops:[{name:"Київ",price:0,time:"09:30"},{name:"Біла Церква",price:100,time:"10:45"},{name:"Умань",price:200,time:"12:00"},{name:"Одеса",price:420,time:"14:00"}] },
+            { id:3, from:"Київ", to:"Харків", price:380, time:"07:15", duration:"4.5 год", rating:4.2, stops:[{name:"Київ",price:0,time:"07:15"},{name:"Полтава",price:220,time:"09:30"},{name:"Харків",price:380,time:"11:45"}] },
+            { id:4, from:"Київ", to:"Дніпро", price:350, time:"10:00", duration:"4 год", rating:4.3, stops:[{name:"Київ",price:0,time:"10:00"},{name:"Кременчук",price:200,time:"12:00"},{name:"Дніпро",price:350,time:"14:00"}] },
+            { id:5, from:"Київ", to:"Запоріжжя", price:400, time:"11:30", duration:"5 год", rating:4.0, stops:[{name:"Київ",price:0,time:"11:30"},{name:"Кременчук",price:200,time:"13:30"},{name:"Дніпро",price:300,time:"15:00"},{name:"Запоріжжя",price:400,time:"16:30"}] },
+            { id:6, from:"Київ", to:"Вінниця", price:280, time:"12:45", duration:"2.5 год", rating:4.6, stops:[{name:"Київ",price:0,time:"12:45"},{name:"Фастів",price:80,time:"13:30"},{name:"Вінниця",price:280,time:"15:15"}] },
+            { id:7, from:"Київ", to:"Житомир", price:200, time:"14:00", duration:"1.5 год", rating:4.1, stops:[{name:"Київ",price:0,time:"14:00"},{name:"Житомир",price:200,time:"15:30"}] },
+            { id:8, from:"Київ", to:"Чернігів", price:220, time:"15:30", duration:"2 год", rating:4.4, stops:[{name:"Київ",price:0,time:"15:30"},{name:"Чернігів",price:220,time:"17:30"}] },
+            { id:9, from:"Київ", to:"Суми", price:320, time:"08:45", duration:"3.5 год", rating:3.9, stops:[{name:"Київ",price:0,time:"08:45"},{name:"Ніжин",price:120,time:"10:00"},{name:"Бахмач",price:200,time:"11:00"},{name:"Суми",price:320,time:"12:15"}] },
+            { id:10, from:"Київ", to:"Полтава", price:300, time:"16:20", duration:"3 год", rating:4.2, stops:[{name:"Київ",price:0,time:"16:20"},{name:"Полтава",price:300,time:"19:20"}] },
+            { id:11, from:"Львів", to:"Київ", price:460, time:"07:00", duration:"5.5 год", rating:4.7, stops:[{name:"Львів",price:0,time:"07:00"},{name:"Рівне",price:200,time:"08:30"},{name:"Житомир",price:320,time:"10:00"},{name:"Київ",price:460,time:"12:30"}] },
+            { id:12, from:"Львів", to:"Ужгород", price:350, time:"08:30", duration:"3.5 год", rating:4.9, stops:[{name:"Львів",price:0,time:"08:30"},{name:"Стрий",price:80,time:"09:15"},{name:"Мукачево",price:250,time:"10:30"},{name:"Ужгород",price:350,time:"12:00"}] },
+            { id:13, from:"Львів", to:"Івано-Франківськ", price:280, time:"10:00", duration:"2.5 год", rating:4.5, stops:[{name:"Львів",price:0,time:"10:00"},{name:"Галич",price:150,time:"11:30"},{name:"Івано-Франківськ",price:280,time:"12:30"}] },
+            { id:14, from:"Львів", to:"Тернопіль", price:220, time:"11:30", duration:"2 год", rating:4.3, stops:[{name:"Львів",price:0,time:"11:30"},{name:"Золочів",price:100,time:"12:30"},{name:"Тернопіль",price:220,time:"13:30"}] },
+            { id:15, from:"Львів", to:"Луцьк", price:250, time:"13:00", duration:"2.5 год", rating:4.2, stops:[{name:"Львів",price:0,time:"13:00"},{name:"Червоноград",price:120,time:"14:15"},{name:"Луцьк",price:250,time:"15:30"}] },
+            { id:16, from:"Львів", to:"Рівне", price:280, time:"14:30", duration:"2.5 год", rating:4.1, stops:[{name:"Львів",price:0,time:"14:30"},{name:"Рівне",price:280,time:"17:00"}] },
+            { id:17, from:"Львів", to:"Хмельницький", price:300, time:"15:45", duration:"3 год", rating:4.4, stops:[{name:"Львів",price:0,time:"15:45"},{name:"Тернопіль",price:150,time:"17:30"},{name:"Хмельницький",price:300,time:"18:45"}] },
+            { id:18, from:"Львів", to:"Чернівці", price:320, time:"17:00", duration:"3.5 год", rating:4.6, stops:[{name:"Львів",price:0,time:"17:00"},{name:"Івано-Франківськ",price:180,time:"18:45"},{name:"Чернівці",price:320,time:"20:30"}] },
+            { id:19, from:"Львів", to:"Одеса", price:550, time:"20:00", duration:"9.5 год", rating:4.8, stops:[{name:"Львів",price:0,time:"20:00"},{name:"Тернопіль",price:150,time:"21:30"},{name:"Хмельницький",price:250,time:"22:30"},{name:"Вінниця",price:350,time:"01:00"},{name:"Одеса",price:550,time:"05:30"}] },
+            { id:20, from:"Львів", to:"Харків", price:650, time:"22:00", duration:"11 год", rating:4.5, stops:[{name:"Львів",price:0,time:"22:00"},{name:"Тернопіль",price:120,time:"23:30"},{name:"Вінниця",price:280,time:"02:00"},{name:"Київ",price:420,time:"05:00"},{name:"Харків",price:650,time:"09:00"}] },
+            { id:21, from:"Харків", to:"Київ", price:400, time:"06:30", duration:"4.5 год", rating:4.6, stops:[{name:"Харків",price:0,time:"06:30"},{name:"Полтава",price:160,time:"08:00"},{name:"Київ",price:400,time:"11:00"}] },
+            { id:22, from:"Харків", to:"Дніпро", price:280, time:"08:00", duration:"2.5 год", rating:4.3, stops:[{name:"Харків",price:0,time:"08:00"},{name:"Дніпро",price:280,time:"10:30"}] },
+            { id:23, from:"Харків", to:"Одеса", price:520, time:"10:30", duration:"6 год", rating:4.7, stops:[{name:"Харків",price:0,time:"10:30"},{name:"Дніпро",price:160,time:"12:30"},{name:"Запоріжжя",price:280,time:"13:30"},{name:"Миколаїв",price:420,time:"15:00"},{name:"Одеса",price:520,time:"16:30"}] },
+            { id:24, from:"Харків", to:"Запоріжжя", price:320, time:"09:30", duration:"3 год", rating:4.2, stops:[{name:"Харків",price:0,time:"09:30"},{name:"Дніпро",price:180,time:"11:00"},{name:"Запоріжжя",price:320,time:"12:30"}] },
+            { id:25, from:"Харків", to:"Суми", price:250, time:"14:00", duration:"2.5 год", rating:4.1, stops:[{name:"Харків",price:0,time:"14:00"},{name:"Суми",price:250,time:"16:30"}] },
+            { id:26, from:"Харків", to:"Полтава", price:220, time:"15:30", duration:"2 год", rating:4.0, stops:[{name:"Харків",price:0,time:"15:30"},{name:"Полтава",price:220,time:"17:30"}] },
+            { id:27, from:"Харків", to:"Луганськ", price:350, time:"12:30", duration:"4 год", rating:3.8, stops:[{name:"Харків",price:0,time:"12:30"},{name:"Ізюм",price:120,time:"13:45"},{name:"Слов'янськ",price:200,time:"14:30"},{name:"Луганськ",price:350,time:"16:30"}] },
+            { id:28, from:"Харків", to:"Донецьк", price:300, time:"11:00", duration:"3.5 год", rating:3.7, stops:[{name:"Харків",price:0,time:"11:00"},{name:"Слов'янськ",price:150,time:"12:30"},{name:"Краматорськ",price:220,time:"13:00"},{name:"Донецьк",price:300,time:"14:30"}] },
+            { id:29, from:"Харків", to:"Львів", price:650, time:"21:00", duration:"11 год", rating:4.8, stops:[{name:"Харків",price:0,time:"21:00"},{name:"Київ",price:380,time:"01:00"},{name:"Львів",price:650,time:"08:00"}] },
+            { id:30, from:"Харків", to:"Ужгород", price:680, time:"20:00", duration:"12 год", rating:4.6, stops:[{name:"Харків",price:0,time:"20:00"},{name:"Київ",price:380,time:"00:00"},{name:"Львів",price:580,time:"07:00"},{name:"Ужгород",price:680,time:"08:00"}] },
+            { id:31, from:"Одеса", to:"Київ", price:440, time:"08:00", duration:"5 год", rating:4.7, stops:[{name:"Одеса",price:0,time:"08:00"},{name:"Умань",price:220,time:"10:00"},{name:"Біла Церква",price:340,time:"11:30"},{name:"Київ",price:440,time:"13:00"}] },
+            { id:32, from:"Одеса", to:"Миколаїв", price:180, time:"09:30", duration:"1.5 год", rating:4.4, stops:[{name:"Одеса",price:0,time:"09:30"},{name:"Миколаїв",price:180,time:"11:00"}] },
+            { id:33, from:"Одеса", to:"Херсон", price:220, time:"11:00", duration:"2 год", rating:4.3, stops:[{name:"Одеса",price:0,time:"11:00"},{name:"Херсон",price:220,time:"13:00"}] },
+            { id:34, from:"Одеса", to:"Запоріжжя", price:350, time:"12:30", duration:"3.5 год", rating:4.5, stops:[{name:"Одеса",price:0,time:"12:30"},{name:"Миколаїв",price:120,time:"13:30"},{name:"Херсон",price:200,time:"14:30"},{name:"Запоріжжя",price:350,time:"16:00"}] },
+            { id:35, from:"Одеса", to:"Вінниця", price:380, time:"14:00", duration:"4.5 год", rating:4.6, stops:[{name:"Одеса",price:0,time:"14:00"},{name:"Умань",price:200,time:"16:00"},{name:"Вінниця",price:380,time:"18:30"}] },
+            { id:36, from:"Одеса", to:"Кропивницький", price:320, time:"15:30", duration:"3 год", rating:4.2, stops:[{name:"Одеса",price:0,time:"15:30"},{name:"Кропивницький",price:320,time:"18:30"}] },
+            { id:37, from:"Дніпро", to:"Львів", price:580, time:"20:00", duration:"10 год", rating:4.7, stops:[{name:"Дніпро",price:0,time:"20:00"},{name:"Кременчук",price:150,time:"21:30"},{name:"Кропивницький",price:250,time:"23:00"},{name:"Вінниця",price:400,time:"02:00"},{name:"Львів",price:580,time:"06:00"}] },
+            { id:38, from:"Дніпро", to:"Одеса", price:420, time:"13:30", duration:"5 год", rating:4.4, stops:[{name:"Дніпро",price:0,time:"13:30"},{name:"Миколаїв",price:300,time:"16:00"},{name:"Одеса",price:420,time:"18:30"}] },
+            { id:39, from:"Запоріжжя", to:"Львів", price:620, time:"19:00", duration:"11 год", rating:4.6, stops:[{name:"Запоріжжя",price:0,time:"19:00"},{name:"Дніпро",price:150,time:"20:30"},{name:"Кропивницький",price:300,time:"22:30"},{name:"Вінниця",price:450,time:"01:30"},{name:"Львів",price:620,time:"06:00"}] },
+            { id:40, from:"Вінниця", to:"Львів", price:350, time:"09:00", duration:"4 год", rating:4.5, stops:[{name:"Вінниця",price:0,time:"09:00"},{name:"Хмельницький",price:150,time:"10:30"},{name:"Тернопіль",price:250,time:"12:00"},{name:"Львів",price:350,time:"13:00"}] },
+            { id:41, from:"Вінниця", to:"Одеса", price:380, time:"11:00", duration:"4.5 год", rating:4.4, stops:[{name:"Вінниця",price:0,time:"11:00"},{name:"Умань",price:200,time:"13:00"},{name:"Одеса",price:380,time:"15:30"}] },
+            { id:42, from:"Чернівці", to:"Київ", price:450, time:"08:00", duration:"6 год", rating:4.6, stops:[{name:"Чернівці",price:0,time:"08:00"},{name:"Івано-Франківськ",price:150,time:"09:30"},{name:"Тернопіль",price:250,time:"11:00"},{name:"Житомир",price:350,time:"13:00"},{name:"Київ",price:450,time:"14:00"}] },
+            { id:43, from:"Ужгород", to:"Київ", price:580, time:"06:00", duration:"8 год", rating:4.8, stops:[{name:"Ужгород",price:0,time:"06:00"},{name:"Мукачево",price:100,time:"06:45"},{name:"Стрий",price:200,time:"08:00"},{name:"Львів",price:280,time:"09:00"},{name:"Тернопіль",price:380,time:"11:00"},{name:"Київ",price:580,time:"14:00"}] },
+            { id:44, from:"Івано-Франківськ", to:"Київ", price:480, time:"07:00", duration:"6.5 год", rating:4.5, stops:[{name:"Івано-Франківськ",price:0,time:"07:00"},{name:"Галич",price:80,time:"07:30"},{name:"Тернопіль",price:200,time:"09:00"},{name:"Житомир",price:350,time:"11:30"},{name:"Київ",price:480,time:"13:30"}] },
+            { id:45, from:"Луцьк", to:"Київ", price:400, time:"08:30", duration:"5 год", rating:4.3, stops:[{name:"Луцьк",price:0,time:"08:30"},{name:"Рівне",price:120,time:"09:30"},{name:"Житомир",price:250,time:"11:00"},{name:"Київ",price:400,time:"13:30"}] },
+            { id:46, from:"Рівне", to:"Київ", price:380, time:"09:00", duration:"4.5 год", rating:4.2, stops:[{name:"Рівне",price:0,time:"09:00"},{name:"Житомир",price:180,time:"10:30"},{name:"Київ",price:380,time:"13:30"}] },
+            { id:47, from:"Тернопіль", to:"Київ", price:400, time:"10:00", duration:"5 год", rating:4.4, stops:[{name:"Тернопіль",price:0,time:"10:00"},{name:"Хмельницький",price:120,time:"11:15"},{name:"Вінниця",price:220,time:"12:45"},{name:"Фастів",price:320,time:"14:15"},{name:"Київ",price:400,time:"15:00"}] },
+            { id:48, from:"Хмельницький", to:"Київ", price:320, time:"07:30", duration:"3.5 год", rating:4.3, stops:[{name:"Хмельницький",price:0,time:"07:30"},{name:"Вінниця",price:150,time:"09:00"},{name:"Фастів",price:250,time:"10:30"},{name:"Київ",price:320,time:"11:00"}] },
+            { id:49, from:"Чернігів", to:"Одеса", price:480, time:"08:30", duration:"6.5 год", rating:4.5, stops:[{name:"Чернігів",price:0,time:"08:30"},{name:"Київ",price:220,time:"10:30"},{name:"Біла Церква",price:320,time:"12:00"},{name:"Умань",price:400,time:"13:30"},{name:"Одеса",price:480,time:"15:00"}] },
+            { id:50, from:"Суми", to:"Миколаїв", price:460, time:"09:00", duration:"6 год", rating:4.2, stops:[{name:"Суми",price:0,time:"09:00"},{name:"Полтава",price:150,time:"10:30"},{name:"Кременчук",price:250,time:"12:00"},{name:"Кропивницький",price:350,time:"13:30"},{name:"Миколаїв",price:460,time:"15:00"}] }
         ];
 
+        let currentSort = 'price';
+        let currentRoutes = [...routes];
         let reviews = JSON.parse(localStorage.getItem('railway_reviews') || '[]');
 
-        function showPopularRoutes() {
+        function saveRating(routeId, rating) {
+            let ratings = JSON.parse(localStorage.getItem('route_ratings') || '{}');
+            ratings[routeId] = rating;
+            localStorage.setItem('route_ratings', JSON.stringify(ratings));
+            updateRouteRating(routeId);
+        }
+
+        function updateRouteRating(routeId) {
+            const ratings = JSON.parse(localStorage.getItem('route_ratings') || '{}');
+            const routeRatings = Object.entries(ratings).filter(([id]) => parseInt(id) === routeId).map(([,r]) => r);
+            if(routeRatings.length > 0) {
+                const avg = routeRatings.reduce((a,b)=>a+b,0)/routeRatings.length;
+                const route = routes.find(r => r.id === routeId);
+                if(route) route.rating = Math.round(avg * 10) / 10;
+            }
+            displayRoutes(currentRoutes);
+        }
+
+        function filterRoutes() {
+            const from = document.getElementById('filterFrom').value.toLowerCase();
+            const to = document.getElementById('filterTo').value.toLowerCase();
+            const maxPrice = parseInt(document.getElementById('priceFilter').value);
+            document.getElementById('priceValue').innerText = `0-${maxPrice}`;
+            
+            currentRoutes = routes.filter(r => 
+                (from === '' || r.from.toLowerCase().includes(from)) &&
+                (to === '' || r.to.toLowerCase().includes(to)) &&
+                r.price <= maxPrice
+            );
+            sortRoutes(currentSort);
+        }
+
+        function sortRoutes(type) {
+            currentSort = type;
+            if(type === 'price') currentRoutes.sort((a,b) => a.price - b.price);
+            else if(type === 'time') currentRoutes.sort((a,b) => a.time.localeCompare(b.time));
+            else if(type === 'rating') currentRoutes.sort((a,b) => b.rating - a.rating);
+            displayRoutes(currentRoutes);
+        }
+
+        function displayRoutes(routesToShow) {
             const container = document.getElementById("popular-routes");
             if(!container) return;
             container.innerHTML = "";
-            const topRoutes = routes.slice(0, 10);
-            topRoutes.forEach(route => {
+            routesToShow.slice(0, 15).forEach(route => {
+                const userRating = JSON.parse(localStorage.getItem('route_ratings') || '{}')[route.id];
                 const div = document.createElement("div");
                 div.className = "route-card";
                 div.innerHTML = `
                     <div class="route-header" onclick="toggleStops(${route.id})">
-                        <div><strong>${route.from} → ${route.to}</strong><br>🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration}</div>
+                        <div><strong>${route.from} → ${route.to}</strong><br>🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration}<br><span class="rating">${'⭐'.repeat(Math.floor(route.rating))} ${route.rating}</span></div>
                         <button class="toggle-stops" onclick="event.stopPropagation(); toggleStops(${route.id})">▼ Зупинки</button>
                     </div>
                     <div id="stops-${route.id}" style="display: none;" class="stops-list">
                         <strong>📍 Станції (купи квиток до будь-якої):</strong>
                         ${route.stops.map(stop => `<div class="stop-item" onclick="buyTicketToStop(${route.id}, '${stop.name}', ${stop.price}, '${stop.time}')"><span class="stop-name">${stop.name}</span><span><span class="stop-time">🕐 ${stop.time}</span><span class="stop-price">💰 ${stop.price} грн</span></span></div>`).join('')}
                     </div>
-                    <div style="margin-top:10px;"><button onclick="buyTicketFullRoute(${route.id})">🎫 Купити весь маршрут (${route.price} грн)</button><button onclick="toggleFavorite(${route.id})">⭐ Вибране</button><button onclick="showReviews(${route.id})">💬 Відгуки (${reviews.filter(r=>r.routeId===route.id).length})</button></div>
+                    <div style="margin-top:10px;">
+                        <button onclick="buyTicketFullRoute(${route.id})">🎫 Купити весь маршрут (${route.price} грн)</button>
+                        <button onclick="rateRoute(${route.id})">⭐ Оцінити (${userRating ? 'Ваша оцінка: '+userRating : 'ще не оцінено'})</button>
+                        <button onclick="toggleFavorite(${route.id})">⭐ Вибране</button>
+                        <button onclick="showReviews(${route.id})">💬 Відгуки (${reviews.filter(r=>r.routeId===route.id).length})</button>
+                    </div>
                 `;
                 container.appendChild(div);
             });
         }
 
+        window.rateRoute = function(routeId) {
+            Swal.fire({
+                title: 'Оцініть маршрут',
+                input: 'select',
+                inputOptions: { 1: '⭐ 1 зірка', 2: '⭐⭐ 2 зірки', 3: '⭐⭐⭐ 3 зірки', 4: '⭐⭐⭐⭐ 4 зірки', 5: '⭐⭐⭐⭐⭐ 5 зірок' },
+                showCancelButton: true
+            }).then(result => {
+                if(result.isConfirmed) {
+                    saveRating(routeId, parseInt(result.value));
+                    Swal.fire('Дякуємо!', 'Вашу оцінку враховано', 'success');
+                }
+            });
+        };
+
         window.toggleStops = function(id) { const div = document.getElementById(`stops-${id}`); if(div) div.style.display = div.style.display === 'none' ? 'block' : 'none'; };
+        
         window.buyTicketToStop = function(routeId, stopName, price, time) {
             const user = JSON.parse(localStorage.getItem('current_user'));
             if(!user) { Swal.fire('Потрібно увійти', '', 'question').then(()=>window.location.href='login.html'); return; }
-            Swal.fire({ title: `Квиток до ${stopName}`, text: `Сума: ${price} грн`, confirmButtonText: 'Купити' }).then(() => { Swal.fire('✅ Успіх!', `Квиток ${stopName} куплено!`, 'success'); });
+            const travelDate = document.getElementById('filterDate').value || new Date().toISOString().split('T')[0];
+            Swal.fire({ title: `Квиток до ${stopName}`, html: `Дата: ${travelDate}<br>Сума: ${price} грн`, confirmButtonText: 'Купити' }).then(() => { 
+                const ticket = { id: Date.now(), from: routes.find(r=>r.id===routeId).from, to: stopName, price: price, date: travelDate, time: time };
+                user.tickets = user.tickets || [];
+                user.tickets.push(ticket);
+                localStorage.setItem('current_user', JSON.stringify(user));
+                const users = JSON.parse(localStorage.getItem('railway_users')||'[]');
+                const idx = users.findIndex(u=>u.id===user.id);
+                if(idx!==-1) users[idx]=user;
+                localStorage.setItem('railway_users', JSON.stringify(users));
+                Swal.fire('✅ Успіх!', `Квиток ${stopName} куплено на ${travelDate}!`, 'success');
+            });
         };
+        
         window.buyTicketFullRoute = function(routeId) {
             const user = JSON.parse(localStorage.getItem('current_user'));
             if(!user) { Swal.fire('Потрібно увійти', '', 'question').then(()=>window.location.href='login.html'); return; }
-            Swal.fire('✅ Успіх!', 'Квиток куплено!', 'success');
+            const route = routes.find(r => r.id === routeId);
+            const travelDate = document.getElementById('filterDate').value || new Date().toISOString().split('T')[0];
+            Swal.fire({ title: `Квиток ${route.from}→${route.to}`, html: `Дата: ${travelDate}<br>Сума: ${route.price} грн`, confirmButtonText: 'Купити' }).then(() => {
+                const ticket = { id: Date.now(), from: route.from, to: route.to, price: route.price, date: travelDate, time: route.time };
+                user.tickets = user.tickets || [];
+                user.tickets.push(ticket);
+                localStorage.setItem('current_user', JSON.stringify(user));
+                const users = JSON.parse(localStorage.getItem('railway_users')||'[]');
+                const idx = users.findIndex(u=>u.id===user.id);
+                if(idx!==-1) users[idx]=user;
+                localStorage.setItem('railway_users', JSON.stringify(users));
+                Swal.fire('✅ Успіх!', `Квиток куплено на ${travelDate}!`, 'success');
+            });
         };
+        
         window.toggleFavorite = function(routeId) { let fav = JSON.parse(localStorage.getItem('favorites')||'[]'); if(fav.includes(routeId)) { fav=fav.filter(id=>id!==routeId); Swal.fire('','⭐ Видалено','info'); } else { fav.push(routeId); Swal.fire('','⭐ Додано','success'); } localStorage.setItem('favorites',JSON.stringify(fav)); };
-        window.showReviews = function(routeId) { Swal.fire('Відгуки', 'Поки що немає відгуків', 'info'); };
-        function showUserStatus() { const user = JSON.parse(localStorage.getItem('current_user')); document.getElementById('userStatus').innerHTML = user ? `✅ Ви увійшли як ${user.name} | <a href="profile.html">Кабінет</a> | <button onclick="logout()">Вийти</button>` : `🔒 Не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Реєстрація</a>`; }
+        
+        window.showReviews = function(routeId) {
+            const route = routes.find(r => r.id === routeId);
+            const routeReviews = reviews.filter(r => r.routeId === routeId);
+            Swal.fire({ title: `Відгуки про ${route.from}→${route.to}`, html: `<textarea id="reviewText" class="swal2-textarea" placeholder="Ваш відгук..."></textarea><br>${routeReviews.map(r=>`⭐${r.rating} ${r.text}`).join('<br>') || 'Немає відгуків'}`, showCancelButton: true, confirmButtonText: 'Додати відгук' }).then(result => {
+                if(result.isConfirmed) {
+                    const text = document.getElementById('reviewText').value;
+                    if(text) {
+                        const user = JSON.parse(localStorage.getItem('current_user')||'{}');
+                        reviews.push({ routeId, rating: 5, text: text, user: user.name || 'Анонім', date: new Date().toLocaleDateString() });
+                        localStorage.setItem('railway_reviews', JSON.stringify(reviews));
+                        Swal.fire('✅ Дякуємо!', 'Відгук додано', 'success');
+                    }
+                }
+            });
+        };
+        
+        function showUserStatus() { const user = JSON.parse(localStorage.getItem('current_user')); document.getElementById('userStatus').innerHTML = user ? `✅ Ви увійшли як ${user.name} | 🎫 Квитків: ${user.tickets?.length || 0} | <a href="profile.html">Кабінет</a> | <button onclick="logout()">Вийти</button>` : `🔒 Не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Реєстрація</a>`; }
+        
         function logout() { localStorage.removeItem('current_user'); location.reload(); }
         function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); }
         if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-        showPopularRoutes(); showUserStatus();
+        
+        document.getElementById('priceFilter').addEventListener('input', () => filterRoutes());
+        document.getElementById('filterFrom').addEventListener('input', () => filterRoutes());
+        document.getElementById('filterTo').addEventListener('input', () => filterRoutes());
+        
+        filterRoutes();
+        showUserStatus();
     </script>
 </body>
 </html>
