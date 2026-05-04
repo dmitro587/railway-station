@@ -2,15 +2,15 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Мій кабінет</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Особистий кабінет</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>👤 Мій кабінет</h1>
+        <h1>👤 Особистий кабінет</h1>
         <nav>
             <a href="index.html">🏠 Головна</a>
             <a href="news.html">📰 Новини</a>
@@ -27,33 +27,54 @@
         <div id="profileInfo"></div>
         <h2>📋 Мої квитки</h2>
         <div id="myTickets"></div>
-        <button onclick="logout()" style="background:#cc0000; padding:10px 20px; margin-top:20px">Вийти</button>
+        <div style="margin-top: 20px;">
+            <button onclick="changePassword()" style="background: #ff9900;">🔑 Змінити пароль</button>
+            <button onclick="logout()" style="background: #cc0000;">🚪 Вийти</button>
+        </div>
     </main>
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
     <script>
         function loadProfile() {
             const user = JSON.parse(localStorage.getItem('current_user'));
-            if (!user) { window.location.href = 'login.html'; return; }
-            document.getElementById('profileInfo').innerHTML = `<div class="route-card"><h3>Вітаємо, ${user.name}!</h3><p>📧 ${user.email}</p><p>🆔 ID: ${user.id}</p><p>🎫 Всього квитків: ${user.tickets?.length || 0}</p></div>`;
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            document.getElementById('profileInfo').innerHTML = `
+                <div class="route-card">
+                    <h3>Вітаємо, ${user.name}!</h3>
+                    <p>📧 ${user.email}</p>
+                    <p>🆔 ID: ${user.id}</p>
+                    <p>📅 Дата реєстрації: ${user.createdAt || 'невідома'}</p>
+                    <p>🎫 Всього квитків: ${user.tickets?.length || 0}</p>
+                </div>
+            `;
+            
             const ticketsDiv = document.getElementById('myTickets');
             if (user.tickets && user.tickets.length > 0) {
-                ticketsDiv.innerHTML = user.tickets.map((t, idx) => `
+                ticketsDiv.innerHTML = user.tickets.slice().reverse().map((t, idx) => `
                     <div class="route-card" id="ticket-${t.id}">
                         <strong>${t.from} → ${t.to}</strong><br>
                         📅 ${t.date} | 🕐 ${t.time} | 💺 Місце: ${t.seat || 'не вибрано'}<br>
-                        💰 ${t.price} грн | ⏱ ${t.duration || '3 год'}<br>
-                        <div id="qrcode-${t.id}"></div>
+                        💰 ${t.price} грн<br>
+                        <div id="qrcode-${t.id}" style="margin-top: 10px;"></div>
                         <button onclick="downloadTicketPDF(${t.id})">📄 Скачати PDF</button>
                     </div>
                 `).join('');
+                
                 user.tickets.forEach(t => {
-                    new QRCode(document.getElementById(`qrcode-${t.id}`), {
-                        text: `КВИТОК: ${t.from}→${t.to} ${t.date} ${t.time} Місце:${t.seat || '?'} Ціна:${t.price}грн`,
-                        width: 120, height: 120
-                    });
+                    try {
+                        new QRCode(document.getElementById(`qrcode-${t.id}`), {
+                            text: `КВИТОК: ${t.from}→${t.to} ${t.date} ${t.time} Місце:${t.seat || '?'} Ціна:${t.price}грн`,
+                            width: 120,
+                            height: 120
+                        });
+                    } catch(e) { console.log('QR error'); }
                 });
             } else {
-                ticketsDiv.innerHTML = '<p>У вас ще немає квитків. Перейдіть до <a href="schedule.html">розкладу</a>, щоб купити.</p>';
+                ticketsDiv.innerHTML = '<div class="route-card"><p>У вас ще немає квитків. Перейдіть до <a href="schedule.html">розкладу</a>, щоб купити.</p></div>';
             }
         }
         
@@ -61,13 +82,81 @@
             const user = JSON.parse(localStorage.getItem('current_user'));
             const ticket = user.tickets.find(t => t.id === ticketId);
             if(ticket) {
-                Swal.fire({ title: '📄 Квиток', html: `<div style="text-align:center"><strong>${ticket.from} → ${ticket.to}</strong><br>Дата: ${ticket.date}<br>Час: ${ticket.time}<br>Місце: ${ticket.seat}<br>Ціна: ${ticket.price} грн</div>`, confirmButtonText: 'OK' });
+                Swal.fire({
+                    title: '🎫 Ваш квиток',
+                    html: `
+                        <div style="text-align:center">
+                            <h3>${ticket.from} → ${ticket.to}</h3>
+                            <p>📅 Дата: ${ticket.date}</p>
+                            <p>🕐 Час: ${ticket.time}</p>
+                            <p>💺 Місце: ${ticket.seat}</p>
+                            <p>💰 Ціна: ${ticket.price} грн</p>
+                            <hr>
+                            <p><small>Покажіть цей квиток контролеру</small></p>
+                        </div>
+                    `,
+                    confirmButtonText: 'OK'
+                });
             }
         }
         
-        function logout() { localStorage.removeItem('current_user'); window.location.href = 'index.html'; }
-        function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); }
+        function changePassword() {
+            const user = JSON.parse(localStorage.getItem('current_user'));
+            Swal.fire({
+                title: 'Зміна пароля',
+                html: `
+                    <input type="password" id="oldPass" class="swal2-input" placeholder="Старий пароль">
+                    <input type="password" id="newPass" class="swal2-input" placeholder="Новий пароль">
+                    <input type="password" id="confirmPass" class="swal2-input" placeholder="Підтвердіть новий пароль">
+                `,
+                preConfirm: () => {
+                    const oldPass = document.getElementById('oldPass').value;
+                    const newPass = document.getElementById('newPass').value;
+                    const confirmPass = document.getElementById('confirmPass').value;
+                    
+                    if(oldPass !== user.password) {
+                        Swal.showValidationMessage('Старий пароль невірний');
+                        return false;
+                    }
+                    if(newPass.length < 4) {
+                        Swal.showValidationMessage('Новий пароль повинен мати не менше 4 символів');
+                        return false;
+                    }
+                    if(newPass !== confirmPass) {
+                        Swal.showValidationMessage('Нові паролі не співпадають');
+                        return false;
+                    }
+                    return { oldPass, newPass };
+                }
+            }).then(result => {
+                if(result.isConfirmed) {
+                    // Оновлюємо пароль
+                    user.password = result.value.newPass;
+                    localStorage.setItem('current_user', JSON.stringify(user));
+                    
+                    // Оновлюємо в списку користувачів
+                    const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
+                    const idx = users.findIndex(u => u.id === user.id);
+                    if(idx !== -1) users[idx] = user;
+                    localStorage.setItem('railway_users', JSON.stringify(users));
+                    
+                    Swal.fire('✅ Успіх!', 'Пароль змінено!', 'success');
+                }
+            });
+        }
+        
+        function logout() {
+            localStorage.removeItem('current_user');
+            window.location.href = 'index.html';
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        
         if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        
         loadProfile();
     </script>
 </body>
