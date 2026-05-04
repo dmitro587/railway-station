@@ -4,46 +4,29 @@
     <meta charset="UTF-8">
     <title>Залізничний вокзал</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .theme-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #0066cc;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-        body.dark {
-            background: #1a1a2e;
-        }
-        body.dark .route-card {
-            background: #16213e;
-            color: #eee;
-        }
-        body.dark header {
-            background: #0f3460;
-        }
-    </style>
+    <link rel="manifest" href="manifest.json">
+    <!-- Бібліотеки -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <meta name="theme-color" content="#003366">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <header>
         <h1>🚆 Залізничний вокзал</h1>
         <nav>
-            <a href="index.html">Головна</a>
-            <a href="news.html">Новини</a>
-            <a href="schedule.html">Розклад</a>
-            <a href="route.html">Маршрут</a>
-            <a href="contacts.html">Контакти</a>
-            <a href="login.html">Вхід</a>
-            <a href="register.html">Реєстрація</a>
-            <a href="profile.html">Кабінет</a>
-            <a href="admin.html">Адмін</a>
+            <a href="index.html">🏠 Головна</a>
+            <a href="news.html">📰 Новини</a>
+            <a href="schedule.html">📅 Розклад</a>
+            <a href="map.html">🗺 Карта</a>
+            <a href="contacts.html">📞 Контакти</a>
+            <a href="login.html">🔐 Вхід</a>
+            <a href="register.html">📝 Реєстрація</a>
+            <a href="profile.html">👤 Кабінет</a>
+            <a href="admin.html">⚙ Адмін</a>
         </nav>
     </header>
     <main>
@@ -51,15 +34,30 @@
         <div id="popular-routes"></div>
         <div id="userStatus" class="route-card"></div>
     </main>
-    
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
     
     <script>
         let routes = [
-            { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450 },
-            { id: 2, from: "Харків", to: "Одеса", time: "10:30", price: 520 },
-            { id: 3, from: "Київ", to: "Харків", time: "14:15", price: 380 }
+            { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год" },
+            { id: 2, from: "Харків", to: "Одеса", time: "10:30", price: 520, duration: "6 год" },
+            { id: 3, from: "Київ", to: "Харків", time: "14:15", price: 380, duration: "4.5 год" }
         ];
+        
+        let reviews = JSON.parse(localStorage.getItem('railway_reviews') || '[]');
+        
+        function saveRoutes() { localStorage.setItem("railway_routes", JSON.stringify(routes)); }
+        function loadRoutes() { const saved = localStorage.getItem("railway_routes"); if(saved) routes = JSON.parse(saved); else saveRoutes(); }
+        
+        // Красиві сповіщення
+        function showSuccess(message) {
+            Swal.fire({ icon: 'success', title: 'Успіх!', text: message, timer: 2000, showConfirmButton: false });
+        }
+        function showError(message) {
+            Swal.fire({ icon: 'error', title: 'Помилка!', text: message });
+        }
+        function showInfo(message) {
+            Swal.fire({ icon: 'info', title: 'Інформація', text: message });
+        }
         
         function showPopularRoutes() {
             const container = document.getElementById("popular-routes");
@@ -70,52 +68,95 @@
                 div.className = "route-card";
                 div.innerHTML = `
                     <strong>${route.from} → ${route.to}</strong><br>
-                    Час: ${route.time} | Ціна: ${route.price} грн<br>
+                    🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration}<br>
                     <button onclick="buyTicket(${route.id})">🎫 Купити</button>
                     <button onclick="toggleFavorite(${route.id})">⭐ Вибране</button>
-                    <button onclick="showReviews(${route.id})">💬 Відгуки</button>
+                    <button onclick="showReviews(${route.id})">💬 Відгуки (${reviews.filter(r=>r.routeId===route.id).length})</button>
                 `;
                 container.appendChild(div);
             });
         }
         
+        // Покупка квитка з QR-кодом
         window.buyTicket = function(routeId) {
             const user = JSON.parse(localStorage.getItem('current_user'));
             if(!user) {
-                if(confirm('Потрібно увійти. Перейти на вхід?')) window.location.href='login.html';
+                Swal.fire({ title: 'Потрібно увійти', text: 'Перейти на сторінку входу?', icon: 'question', showCancelButton: true }).then(result => {
+                    if(result.isConfirmed) window.location.href = 'login.html';
+                });
                 return;
             }
             const route = routes.find(r => r.id === routeId);
             if(!route) return;
-            const cardNumber = prompt("Введіть номер картки (16 цифр):");
-            if(cardNumber && cardNumber.length === 16) {
-                alert(`✅ Квиток куплено! ${route.from} → ${route.to}\nОплачено: ${route.price} грн`);
-            } else if(cardNumber) alert("❌ Невірний номер картки");
+            
+            Swal.fire({ title: 'Виберіть місце', input: 'number', inputPlaceholder: 'Номер місця (1-32)', showCancelButton: true }).then(seatResult => {
+                if(seatResult.isConfirmed && seatResult.value >= 1 && seatResult.value <= 32) {
+                    Swal.fire({ title: 'Оплата', text: 'Введіть 16 цифр картки', input: 'text', inputPlaceholder: '1234 5678 9012 3456', showCancelButton: true }).then(payResult => {
+                        if(payResult.isConfirmed && payResult.value.length >= 16) {
+                            const ticket = {
+                                id: Date.now(), from: route.from, to: route.to, time: route.time,
+                                price: route.price, date: new Date().toLocaleDateString(),
+                                seat: seatResult.value, duration: route.duration
+                            };
+                            user.tickets = user.tickets || [];
+                            user.tickets.push(ticket);
+                            const users = JSON.parse(localStorage.getItem('railway_users')||'[]');
+                            const idx = users.findIndex(u=>u.id===user.id);
+                            if(idx!==-1) users[idx]=user;
+                            localStorage.setItem('railway_users', JSON.stringify(users));
+                            localStorage.setItem('current_user', JSON.stringify(user));
+                            
+                            let stats = JSON.parse(localStorage.getItem('ticket_stats') || '[]');
+                            stats.push({ routeId, from: route.from, to: route.to, price: route.price, date: new Date().toLocaleDateString() });
+                            localStorage.setItem('ticket_stats', JSON.stringify(stats));
+                            
+                            showSuccess(`Квиток куплено! ${route.from}→${route.to}\nМісце: ${seatResult.value}\nСума: ${route.price} грн`);
+                        } else if(payResult.isConfirmed) showError('Невірний номер картки');
+                    });
+                } else if(seatResult.isConfirmed) showError('Виберіть місце від 1 до 32');
+            });
         };
         
         window.toggleFavorite = function(routeId) {
             let fav = JSON.parse(localStorage.getItem('favorites') || '[]');
             if(fav.includes(routeId)) {
                 fav = fav.filter(id => id !== routeId);
-                alert('⭐ Видалено з вибраного');
+                showInfo('⭐ Видалено з вибраного');
             } else {
                 fav.push(routeId);
-                alert('⭐ Додано до вибраного!');
+                showSuccess('⭐ Додано до вибраного!');
             }
             localStorage.setItem('favorites', JSON.stringify(fav));
         };
         
         window.showReviews = function(routeId) {
             const route = routes.find(r => r.id === routeId);
-            prompt(`Відгук про ${route.from}→${route.to}:\n(Введіть оцінку 1-5 і текст)`);
-            alert('✅ Відгук додано!');
+            const routeReviews = reviews.filter(r => r.routeId === routeId);
+            const reviewList = routeReviews.length ? routeReviews.map(r=>`⭐${r.rating} ${r.text} - ${r.user}`).join('\n') : 'Немає відгуків';
+            Swal.fire({
+                title: `Відгуки про ${route.from}→${route.to}`,
+                html: `<textarea id="reviewText" class="swal2-textarea" placeholder="Оцінка 1-5 і текст, наприклад: 4 Гарний потяг"></textarea><br><div style="text-align:left; max-height:200px; overflow:auto;">${reviewList}</div>`,
+                showCancelButton: true, confirmButtonText: 'Додати відгук'
+            }).then(result => {
+                if(result.isConfirmed) {
+                    const text = document.getElementById('reviewText').value;
+                    const match = text.match(/^([1-5])\s*(.*)$/);
+                    if(match) {
+                        const user = JSON.parse(localStorage.getItem('current_user')||'{}');
+                        reviews.push({ routeId, rating: match[1], text: match[2], user: user.name || 'Анонім', date: new Date().toLocaleDateString() });
+                        localStorage.setItem('railway_reviews', JSON.stringify(reviews));
+                        showSuccess('Відгук додано!');
+                        location.reload();
+                    } else showError('Формат: "4 Гарний потяг"');
+                }
+            });
         };
         
         function showUserStatus() {
             const user = JSON.parse(localStorage.getItem('current_user'));
             const div = document.getElementById('userStatus');
             if(user) {
-                div.innerHTML = `✅ Ви увійшли як <strong>${user.name}</strong> | <a href="profile.html">Мої квитки</a> | <button onclick="logout()">Вийти</button>`;
+                div.innerHTML = `✅ Ви увійшли як <strong>${user.name}</strong> | 🎫 Квитків: ${user.tickets?.length || 0} | <a href="profile.html">Мої квитки</a> | <button onclick="logout()">Вийти</button>`;
             } else {
                 div.innerHTML = `🔒 Ви не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Зареєструватися</a>`;
             }
@@ -123,24 +164,18 @@
         
         function logout() {
             localStorage.removeItem('current_user');
-            alert('Ви вийшли');
-            location.reload();
+            showInfo('Ви вийшли з акаунту');
+            setTimeout(() => location.reload(), 1500);
         }
         
-        // ========== ТЕМНА ТЕМА ==========
+        // Темна тема
         function toggleTheme() {
             document.body.classList.toggle('dark');
-            if(document.body.classList.contains('dark')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
         }
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         
-        if(localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark');
-        }
-        
+        loadRoutes();
         showPopularRoutes();
         showUserStatus();
     </script>
