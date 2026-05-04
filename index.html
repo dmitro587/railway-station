@@ -14,13 +14,37 @@
             <a href="schedule.html">Розклад</a>
             <a href="route.html">Маршрут</a>
             <a href="contacts.html">Контакти</a>
+            <a href="login.html">Вхід</a>
+            <a href="register.html">Реєстрація</a>
+            <a href="profile.html">Кабінет</a>
             <a href="admin.html">Адмін</a>
         </nav>
     </header>
     <main>
         <h2>Популярні маршрути</h2>
         <div id="popular-routes"></div>
+        <div id="userStatus" style="margin-top: 20px; padding: 10px; background: #e0e0e0; border-radius: 10px;"></div>
     </main>
     <script src="main.js"></script>
+    <script>
+        // Показуємо статус користувача
+        function showUserStatus() {
+            const user = JSON.parse(localStorage.getItem('current_user'));
+            const statusDiv = document.getElementById('userStatus');
+            if (user) {
+                statusDiv.innerHTML = `✅ Ви увійшли як <strong>${user.name}</strong> | <a href="profile.html">Мої квитки</a> | <button onclick="logout()" style="background:#cc0000; padding:5px 10px;">Вийти</button>`;
+            } else {
+                statusDiv.innerHTML = `🔒 Ви не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Зареєструватися</a>`;
+            }
+        }
+        
+        window.logout = function() {
+            localStorage.removeItem('current_user');
+            alert('Ви вийшли з акаунту');
+            location.reload();
+        };
+        
+        showUserStatus();
+    </script>
 </body>
 </html>
