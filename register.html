@@ -2,62 +2,108 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Реєстрація</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <header>
         <h1>🚆 Реєстрація</h1>
         <nav>
-            <a href="index.html">Головна</a>
-            <a href="news.html">Новини</a>
-            <a href="schedule.html">Розклад</a>
-            <a href="contacts.html">Контакти</a>
-            <a href="login.html">Вхід</a>
-            <a href="register.html">Реєстрація</a>
-            <a href="admin.html">Адмін</a>
+            <a href="index.html">🏠 Головна</a>
+            <a href="news.html">📰 Новини</a>
+            <a href="schedule.html">📅 Розклад</a>
+            <a href="map.html">🗺 Карта</a>
+            <a href="contacts.html">📞 Контакти</a>
+            <a href="login.html">🔐 Вхід</a>
+            <a href="register.html">📝 Реєстрація</a>
+            <a href="profile.html">👤 Кабінет</a>
+            <a href="admin.html">⚙ Адмін</a>
         </nav>
     </header>
     <main>
         <div class="form-container">
-            <h2>📝 Реєстрація</h2>
-            <form id="registerForm">
-                <input type="text" id="regName" placeholder="Ваше ім'я" required>
-                <input type="email" id="regEmail" placeholder="Email" required>
-                <input type="password" id="regPassword" placeholder="Пароль" required>
-                <input type="password" id="regConfirm" placeholder="Підтвердіть пароль" required>
-                <button type="submit">Зареєструватися</button>
-            </form>
+            <h2>📝 Реєстрація нового користувача</h2>
+            <input type="text" id="regName" placeholder="Ваше ім'я" style="width:100%; padding:10px; margin:10px 0">
+            <input type="email" id="regEmail" placeholder="Email" style="width:100%; padding:10px; margin:10px 0">
+            <input type="password" id="regPassword" placeholder="Пароль" style="width:100%; padding:10px; margin:10px 0">
+            <input type="password" id="regConfirm" placeholder="Підтвердіть пароль" style="width:100%; padding:10px; margin:10px 0">
+            <button onclick="register()" style="width:100%; padding:10px">Зареєструватися</button>
             <p>Вже є акаунт? <a href="login.html">Увійти</a></p>
         </div>
     </main>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
+        function register() {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
             const password = document.getElementById('regPassword').value;
             const confirm = document.getElementById('regConfirm').value;
             
-            if (password !== confirm) {
-                alert('❌ Паролі не співпадають');
+            // Перевірка на пусті поля
+            if(!name || !email || !password || !confirm) {
+                Swal.fire('Помилка', 'Заповніть всі поля', 'error');
                 return;
             }
             
+            // Перевірка співпадіння паролів
+            if(password !== confirm) {
+                Swal.fire('Помилка', 'Паролі не співпадають', 'error');
+                return;
+            }
+            
+            // Перевірка довжини пароля
+            if(password.length < 4) {
+                Swal.fire('Помилка', 'Пароль повинен містити не менше 4 символів', 'error');
+                return;
+            }
+            
+            // Перевірка формату email
+            if(!email.includes('@') || !email.includes('.')) {
+                Swal.fire('Помилка', 'Введіть коректний email', 'error');
+                return;
+            }
+            
+            // Отримуємо список користувачів
             const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
-            if (users.find(u => u.email === email)) {
-                alert('❌ Користувач з таким email вже існує');
+            
+            // Перевірка на існуючого користувача
+            if(users.find(u => u.email === email)) {
+                Swal.fire('Помилка', 'Користувач з таким email вже існує', 'error');
                 return;
             }
             
-            const newUser = { id: Date.now(), name, email, password, tickets: [] };
+            // Створюємо нового користувача
+            const newUser = {
+                id: Date.now(),
+                name: name,
+                email: email,
+                password: password,  // Пароль зберігається в localStorage
+                tickets: [],
+                createdAt: new Date().toLocaleDateString(),
+                lastLogin: null
+            };
+            
+            // Додаємо до списку
             users.push(newUser);
             localStorage.setItem('railway_users', JSON.stringify(users));
+            
+            // Автоматично входимо
             localStorage.setItem('current_user', JSON.stringify(newUser));
             
-            alert('✅ Реєстрація успішна!');
-            window.location.href = 'profile.html';
-        });
+            Swal.fire('✅ Успіх!', `Вітаємо, ${name}! Реєстрація пройшла успішно.`, 'success').then(() => {
+                window.location.href = 'index.html';
+            });
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
     </script>
 </body>
 </html>
