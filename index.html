@@ -4,6 +4,32 @@
     <meta charset="UTF-8">
     <title>Залізничний вокзал</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .theme-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        body.dark {
+            background: #1a1a2e;
+        }
+        body.dark .route-card {
+            background: #16213e;
+            color: #eee;
+        }
+        body.dark header {
+            background: #0f3460;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -25,16 +51,16 @@
         <div id="popular-routes"></div>
         <div id="userStatus" class="route-card"></div>
     </main>
-    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+    
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    
     <script>
-        // Маршрути
         let routes = [
             { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450 },
             { id: 2, from: "Харків", to: "Одеса", time: "10:30", price: 520 },
             { id: 3, from: "Київ", to: "Харків", time: "14:15", price: 380 }
         ];
         
-        // Показ маршрутів
         function showPopularRoutes() {
             const container = document.getElementById("popular-routes");
             if(!container) return;
@@ -53,7 +79,6 @@
             });
         }
         
-        // Покупка квитка
         window.buyTicket = function(routeId) {
             const user = JSON.parse(localStorage.getItem('current_user'));
             if(!user) {
@@ -68,7 +93,6 @@
             } else if(cardNumber) alert("❌ Невірний номер картки");
         };
         
-        // Вибране
         window.toggleFavorite = function(routeId) {
             let fav = JSON.parse(localStorage.getItem('favorites') || '[]');
             if(fav.includes(routeId)) {
@@ -81,14 +105,12 @@
             localStorage.setItem('favorites', JSON.stringify(fav));
         };
         
-        // Відгуки
         window.showReviews = function(routeId) {
             const route = routes.find(r => r.id === routeId);
             prompt(`Відгук про ${route.from}→${route.to}:\n(Введіть оцінку 1-5 і текст)`);
             alert('✅ Відгук додано!');
         };
         
-        // Статус користувача
         function showUserStatus() {
             const user = JSON.parse(localStorage.getItem('current_user'));
             const div = document.getElementById('userStatus');
@@ -115,12 +137,10 @@
             }
         }
         
-        // Завантажуємо збережену тему
         if(localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark');
         }
         
-        // Запуск
         showPopularRoutes();
         showUserStatus();
     </script>
