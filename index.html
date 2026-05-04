@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Залізничний вокзал</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="theme-color" content="#003366">
 </head>
@@ -30,54 +29,79 @@
         <div id="userStatus" class="route-card"></div>
     </main>
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-    
+
     <script>
-        // ========== ВСІ МАРШРУТИ (50+) ==========
+        // ========== ВСІ МАРШРУТИ УКРАЇНИ (50+) ==========
         let routes = [
             { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год", distance: "540 км" },
             { id: 2, from: "Київ", to: "Одеса", time: "09:30", price: 420, duration: "4.5 год", distance: "480 км" },
             { id: 3, from: "Київ", to: "Харків", time: "07:15", price: 380, duration: "4.5 год", distance: "470 км" },
             { id: 4, from: "Київ", to: "Дніпро", time: "10:00", price: 350, duration: "4 год", distance: "440 км" },
             { id: 5, from: "Київ", to: "Запоріжжя", time: "11:30", price: 400, duration: "5 год", distance: "520 км" },
-            { id: 6, from: "Львів", to: "Київ", time: "07:00", price: 460, duration: "5.5 год", distance: "540 км" },
-            { id: 7, from: "Львів", to: "Ужгород", time: "08:30", price: 350, duration: "3.5 год", distance: "260 км" },
-            { id: 8, from: "Львів", to: "Одеса", time: "20:00", price: 550, duration: "9.5 год", distance: "850 км" },
-            { id: 9, from: "Харків", to: "Київ", time: "06:30", price: 400, duration: "4.5 год", distance: "470 км" },
-            { id: 10, from: "Харків", to: "Дніпро", time: "08:00", price: 280, duration: "2.5 год", distance: "220 км" },
-            { id: 11, from: "Одеса", to: "Київ", time: "08:00", price: 440, duration: "5 год", distance: "480 км" },
-            { id: 12, from: "Одеса", to: "Миколаїв", time: "09:30", price: 180, duration: "1.5 год", distance: "130 км" },
-            { id: 13, from: "Дніпро", to: "Львів", time: "20:00", price: 580, duration: "10 год", distance: "920 км" },
-            { id: 14, from: "Дніпро", to: "Одеса", time: "13:30", price: 420, duration: "5 год", distance: "490 км" },
-            { id: 15, from: "Вінниця", to: "Львів", time: "09:00", price: 350, duration: "4 год", distance: "360 км" },
-            { id: 16, from: "Вінниця", to: "Одеса", time: "11:00", price: 380, duration: "4.5 год", distance: "370 км" },
-            { id: 17, from: "Запоріжжя", to: "Львів", time: "19:00", price: 620, duration: "11 год", distance: "1000 км" },
-            { id: 18, from: "Чернівці", to: "Київ", time: "08:00", price: 450, duration: "6 год", distance: "520 км" },
-            { id: 19, from: "Ужгород", to: "Київ", time: "06:00", price: 580, duration: "8 год", distance: "780 км" },
-            { id: 20, from: "Івано-Франківськ", to: "Київ", time: "07:00", price: 480, duration: "6.5 год", distance: "580 км" }
+            { id: 6, from: "Київ", to: "Вінниця", time: "12:45", price: 280, duration: "2.5 год", distance: "260 км" },
+            { id: 7, from: "Київ", to: "Житомир", time: "14:00", price: 200, duration: "1.5 год", distance: "140 км" },
+            { id: 8, from: "Київ", to: "Чернігів", time: "15:30", price: 220, duration: "2 год", distance: "140 км" },
+            { id: 9, from: "Київ", to: "Суми", time: "08:45", price: 320, duration: "3.5 год", distance: "350 км" },
+            { id: 10, from: "Київ", to: "Полтава", time: "16:20", price: 300, duration: "3 год", distance: "340 км" },
+            { id: 11, from: "Львів", to: "Київ", time: "07:00", price: 460, duration: "5.5 год", distance: "540 км" },
+            { id: 12, from: "Львів", to: "Ужгород", time: "08:30", price: 350, duration: "3.5 год", distance: "260 км" },
+            { id: 13, from: "Львів", to: "Івано-Франківськ", time: "10:00", price: 280, duration: "2.5 год", distance: "150 км" },
+            { id: 14, from: "Львів", to: "Тернопіль", time: "11:30", price: 220, duration: "2 год", distance: "120 км" },
+            { id: 15, from: "Львів", to: "Луцьк", time: "13:00", price: 250, duration: "2.5 год", distance: "150 км" },
+            { id: 16, from: "Львів", to: "Рівне", time: "14:30", price: 280, duration: "2.5 год", distance: "210 км" },
+            { id: 17, from: "Львів", to: "Хмельницький", time: "15:45", price: 300, duration: "3 год", distance: "260 км" },
+            { id: 18, from: "Львів", to: "Чернівці", time: "17:00", price: 320, duration: "3.5 год", distance: "280 км" },
+            { id: 19, from: "Львів", to: "Одеса", time: "20:00", price: 550, duration: "9.5 год", distance: "850 км" },
+            { id: 20, from: "Львів", to: "Харків", time: "22:00", price: 650, duration: "11 год", distance: "1000 км" },
+            { id: 21, from: "Харків", to: "Київ", time: "06:30", price: 400, duration: "4.5 год", distance: "470 км" },
+            { id: 22, from: "Харків", to: "Дніпро", time: "08:00", price: 280, duration: "2.5 год", distance: "220 км" },
+            { id: 23, from: "Харків", to: "Одеса", time: "10:30", price: 520, duration: "6 год", distance: "570 км" },
+            { id: 24, from: "Харків", to: "Запоріжжя", time: "09:30", price: 320, duration: "3 год", distance: "270 км" },
+            { id: 25, from: "Харків", to: "Суми", time: "14:00", price: 250, duration: "2.5 год", distance: "180 км" },
+            { id: 26, from: "Одеса", to: "Київ", time: "08:00", price: 440, duration: "5 год", distance: "480 км" },
+            { id: 27, from: "Одеса", to: "Миколаїв", time: "09:30", price: 180, duration: "1.5 год", distance: "130 км" },
+            { id: 28, from: "Одеса", to: "Херсон", time: "11:00", price: 220, duration: "2 год", distance: "160 км" },
+            { id: 29, from: "Одеса", to: "Запоріжжя", time: "12:30", price: 350, duration: "3.5 год", distance: "320 км" },
+            { id: 30, from: "Одеса", to: "Вінниця", time: "14:00", price: 380, duration: "4 год", distance: "360 км" },
+            { id: 31, from: "Дніпро", to: "Львів", time: "20:00", price: 580, duration: "10 год", distance: "920 км" },
+            { id: 32, from: "Дніпро", to: "Одеса", time: "13:30", price: 420, duration: "5 год", distance: "490 км" },
+            { id: 33, from: "Дніпро", to: "Харків", time: "07:00", price: 280, duration: "2.5 год", distance: "220 км" },
+            { id: 34, from: "Запоріжжя", to: "Львів", time: "19:00", price: 620, duration: "11 год", distance: "1000 км" },
+            { id: 35, from: "Вінниця", to: "Львів", time: "09:00", price: 350, duration: "4 год", distance: "360 км" },
+            { id: 36, from: "Вінниця", to: "Одеса", time: "11:00", price: 380, duration: "4.5 год", distance: "370 км" },
+            { id: 37, from: "Чернівці", to: "Київ", time: "08:00", price: 450, duration: "6 год", distance: "520 км" },
+            { id: 38, from: "Ужгород", to: "Київ", time: "06:00", price: 580, duration: "8 год", distance: "780 км" },
+            { id: 39, from: "Івано-Франківськ", to: "Київ", time: "07:00", price: 480, duration: "6.5 год", distance: "580 км" },
+            { id: 40, from: "Луцьк", to: "Київ", time: "08:30", price: 400, duration: "5 год", distance: "400 км" },
+            { id: 41, from: "Рівне", to: "Київ", time: "09:00", price: 380, duration: "4.5 год", distance: "330 км" },
+            { id: 42, from: "Тернопіль", to: "Київ", time: "10:00", price: 400, duration: "5 год", distance: "420 км" },
+            { id: 43, from: "Хмельницький", to: "Київ", time: "07:30", price: 320, duration: "3.5 год", distance: "340 км" },
+            { id: 44, from: "Полтава", to: "Київ", time: "06:00", price: 300, duration: "3 год", distance: "340 км" },
+            { id: 45, from: "Чернігів", to: "Одеса", time: "08:30", price: 480, duration: "6.5 год", distance: "620 км" },
+            { id: 46, from: "Суми", to: "Миколаїв", time: "09:00", price: 460, duration: "6 год", distance: "580 км" },
+            { id: 47, from: "Житомир", to: "Херсон", time: "10:30", price: 440, duration: "6 год", distance: "560 км" },
+            { id: 48, from: "Донецьк", to: "Київ", time: "05:00", price: 500, duration: "7 год", distance: "700 км" },
+            { id: 49, from: "Луганськ", to: "Київ", time: "04:00", price: 550, duration: "8 год", distance: "800 км" },
+            { id: 50, from: "Сімферополь", to: "Київ", time: "06:00", price: 600, duration: "9 год", distance: "850 км" }
         ];
 
-        // Додаємо ще 30 маршрутів для повноти
-        for(let i = 21; i <= 50; i++) {
-            routes.push({ id: i, from: "Київ", to: "Львів", time: `${8 + (i % 12)}:00`, price: 400 + i, duration: "5 год", distance: "540 км" });
-        }
-
         let reviews = JSON.parse(localStorage.getItem('railway_reviews') || '[]');
-        
+
         function saveRoutes() { localStorage.setItem("railway_routes", JSON.stringify(routes)); }
         function loadRoutes() { const saved = localStorage.getItem("railway_routes"); if(saved) routes = JSON.parse(saved); else saveRoutes(); }
 
-        // Показ популярних маршрутів (перші 6)
+        // Показ популярних маршрутів (6 штук)
         function showPopularRoutes() {
             const container = document.getElementById("popular-routes");
             if(!container) return;
             container.innerHTML = "";
-            const popular = routes.slice(0, 6);
-            popular.forEach(route => {
+            const topRoutes = routes.slice(0, 6);
+            topRoutes.forEach(route => {
                 const div = document.createElement("div");
                 div.className = "route-card";
                 div.innerHTML = `
                     <strong>${route.from} → ${route.to}</strong><br>
-                    🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'} | 📍 ${route.distance || '---'}<br>
+                    🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration} | 📍 ${route.distance}<br>
                     <button onclick="buyTicket(${route.id})">🎫 Купити</button>
                     <button onclick="toggleFavorite(${route.id})">⭐ Вибране</button>
                     <button onclick="showReviews(${route.id})">💬 Відгуки (${reviews.filter(r=>r.routeId===route.id).length})</button>
@@ -101,7 +125,7 @@
             Swal.fire({ title: 'Виберіть місце', input: 'number', inputPlaceholder: 'Номер місця (1-32)', showCancelButton: true }).then(seatResult => {
                 if(seatResult.isConfirmed && seatResult.value >= 1 && seatResult.value <= 32) {
                     Swal.fire({ title: 'Оплата', text: 'Введіть 16 цифр картки', input: 'text', inputPlaceholder: '1234 5678 9012 3456', showCancelButton: true }).then(payResult => {
-                        if(payResult.isConfirmed && payResult.value.length >= 16) {
+                        if(payResult.isConfirmed && payResult.value && payResult.value.replace(/\s/g, '').length >= 16) {
                             const ticket = {
                                 id: Date.now(), from: route.from, to: route.to, time: route.time,
                                 price: route.price, date: new Date().toLocaleDateString(),
@@ -119,13 +143,14 @@
                             stats.push({ routeId, from: route.from, to: route.to, price: route.price, date: new Date().toLocaleDateString() });
                             localStorage.setItem('ticket_stats', JSON.stringify(stats));
                             
-                            Swal.fire('✅ Успіх!', `Квиток куплено! ${route.from}→${route.to}\nМісце: ${seatResult.value}\nСума: ${route.price} грн`, 'success');
+                            Swal.fire('✅ Успіх!', `Квиток куплено!\n${route.from} → ${route.to}\nМісце: ${seatResult.value}\nСума: ${route.price} грн`, 'success');
                         } else if(payResult.isConfirmed) Swal.fire('❌ Помилка', 'Невірний номер картки', 'error');
                     });
                 } else if(seatResult.isConfirmed) Swal.fire('❌ Помилка', 'Виберіть місце від 1 до 32', 'error');
             });
         };
         
+        // Вибране
         window.toggleFavorite = function(routeId) {
             let fav = JSON.parse(localStorage.getItem('favorites') || '[]');
             if(fav.includes(routeId)) {
@@ -138,6 +163,7 @@
             localStorage.setItem('favorites', JSON.stringify(fav));
         };
         
+        // Відгуки
         window.showReviews = function(routeId) {
             const route = routes.find(r => r.id === routeId);
             const routeReviews = reviews.filter(r => r.routeId === routeId);
@@ -161,6 +187,7 @@
             });
         };
         
+        // Статус користувача
         function showUserStatus() {
             const user = JSON.parse(localStorage.getItem('current_user'));
             const div = document.getElementById('userStatus');
@@ -176,6 +203,7 @@
             Swal.fire('Ви вийшли', 'До побачення!', 'info').then(() => location.reload());
         }
         
+        // Темна тема
         function toggleTheme() {
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
