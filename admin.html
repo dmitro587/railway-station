@@ -1,56 +1,102 @@
 <!DOCTYPE html>
 <html lang="uk">
-<head><meta charset="UTF-8"><title>Адмін панель</title><link rel="stylesheet" href="style.css"></head>
+<head>
+    <meta charset="UTF-8">
+    <title>Адмін панель</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
-    <header><h1>🔧 Адмін панель</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="route.html">Маршрут</a><a href="contacts.html">Контакти</a><a href="admin.html">Адмін</a></nav></header>
+    <header>
+        <h1>🔧 Адмін панель</h1>
+        <nav>
+            <a href="index.html">Головна</a>
+            <a href="news.html">Новини</a>
+            <a href="schedule.html">Розклад</a>
+            <a href="route.html">Маршрут</a>
+            <a href="contacts.html">Контакти</a>
+            <a href="login.html">Вхід</a>
+            <a href="register.html">Реєстрація</a>
+            <a href="profile.html">Кабінет</a>
+            <a href="admin.html">Адмін</a>
+        </nav>
+    </header>
     <main>
+        <h2>📊 Статистика продажів</h2>
+        <div id="stats" class="route-card"></div>
+        
         <h2>➕ Додати маршрут</h2>
         <div class="route-card">
-            <input type="text" id="newFrom" placeholder="Звідки">
-            <input type="text" id="newTo" placeholder="Куди">
-            <input type="text" id="newTime" placeholder="Час">
-            <input type="number" id="newPrice" placeholder="Ціна">
+            <input id="newFrom" placeholder="Звідки"> <input id="newTo" placeholder="Куди">
+            <input id="newTime" placeholder="Час"> <input id="newPrice" placeholder="Ціна">
             <button onclick="addRoute()">➕ Додати</button>
         </div>
-        <h2>📋 Керування</h2>
+        
+        <h2>📋 Керування маршрутами</h2>
         <div id="adminRoutes"></div>
     </main>
+    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
     <script src="main.js"></script>
     <script>
+        function showStats() {
+            const stats = JSON.parse(localStorage.getItem('ticket_stats') || '[]');
+            const totalSold = stats.length;
+            const totalRevenue = stats.reduce((sum, t) => sum + t.price, 0);
+            const popular = {};
+            stats.forEach(s => { popular[`${s.from}→${s.to}`] = (popular[`${s.from}→${s.to}`] || 0) + 1; });
+            const popularList = Object.entries(popular).sort((a,b)=>b[1]-a[1]).slice(0,3);
+            document.getElementById('stats').innerHTML = `
+                <h3>📈 Загальна статистика</h3>
+                <p>🎫 Продано квитків: <strong>${totalSold}</strong></p>
+                <p>💰 Виручка: <strong>${totalRevenue} грн</strong></p>
+                <h3>🔥 Популярні напрямки:</h3>
+                <ul>${popularList.map(p=>`<li>${p[0]} - ${p[1]} квитків</li>`).join('')}</ul>
+            `;
+        }
+        
         function showAdminRoutes() {
             const container = document.getElementById("adminRoutes");
             const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
-            container.innerHTML = routes.map(r => `<div class="route-card"><strong>${r.from}→${r.to}</strong> ${r.time} ${r.price}грн <button onclick="deleteRoute(${r.id})" style="background:#cc0000">Видалити</button> <button onclick="editRoute(${r.id})" style="background:#ff9900">Редагувати</button></div>`).join("");
+            container.innerHTML = routes.map(r => `<div class="route-card"><strong>${r.from}→${r.to}</strong> ${r.time} ${r.price}грн <button onclick="deleteRoute(${r.id})" style="background:#cc0000">Видалити</button> <button onclick="editRoute(${r.id})" style="background:#ff9900">Редагувати</button></div>`).join('');
         }
+        
         window.addRoute = function() {
-            const from = document.getElementById("newFrom").value, to = document.getElementById("newTo").value, time = document.getElementById("newTime").value, price = document.getElementById("newPrice").value;
-            if (!from || !to || !time || !price) return alert("Заповніть поля!");
-            const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
-            const newId = routes.length ? Math.max(...routes.map(r => r.id)) + 1 : 1;
-            routes.push({ id: newId, from, to, time, price: Number(price) });
+            const from=document.getElementById("newFrom").value, to=document.getElementById("newTo").value, time=document.getElementById("newTime").value, price=document.getElementById("newPrice").value;
+            if(!from||!to||!time||!price) return alert("Заповніть поля!");
+            const routes = JSON.parse(localStorage.getItem("railway_routes")||"[]");
+            const newId = routes.length ? Math.max(...routes.map(r=>r.id))+1 : 1;
+            routes.push({ id: newId, from, to, time, price: Number(price), duration: "3 год" });
             localStorage.setItem("railway_routes", JSON.stringify(routes));
-            showAdminRoutes();
-            alert("✅ Маршрут додано!");
+            showAdminRoutes(); location.reload();
         };
+        
         window.deleteRoute = function(id) {
-            if (!confirm("Видалити?")) return;
-            let routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
-            routes = routes.filter(r => r.id !== id);
+            if(!confirm("Видалити?")) return;
+            let routes = JSON.parse(localStorage.getItem("railway_routes")||"[]");
+            routes = routes.filter(r=>r.id!==id);
             localStorage.setItem("railway_routes", JSON.stringify(routes));
-            showAdminRoutes();
+            showAdminRoutes(); location.reload();
         };
+        
         window.editRoute = function(id) {
-            const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
-            const route = routes.find(r => r.id === id);
-            if (!route) return;
-            const newFrom = prompt("Звідки:", route.from), newTo = prompt("Куди:", route.to), newTime = prompt("Час:", route.time), newPrice = prompt("Ціна:", route.price);
-            if (newFrom && newTo && newTime && newPrice) {
-                route.from = newFrom; route.to = newTo; route.time = newTime; route.price = Number(newPrice);
+            const routes = JSON.parse(localStorage.getItem("railway_routes")||"[]");
+            const route = routes.find(r=>r.id===id);
+            if(!route) return;
+            const newFrom=prompt("Звідки:",route.from), newTo=prompt("Куди:",route.to), newTime=prompt("Час:",route.time), newPrice=prompt("Ціна:",route.price);
+            if(newFrom&&newTo&&newTime&&newPrice) {
+                route.from=newFrom; route.to=newTo; route.time=newTime; route.price=Number(newPrice);
                 localStorage.setItem("railway_routes", JSON.stringify(routes));
-                showAdminRoutes();
+                showAdminRoutes(); location.reload();
             }
         };
-        showAdminRoutes();
+        
+        showStats(); showAdminRoutes();
+    </script>
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
     </script>
 </body>
 </html>
