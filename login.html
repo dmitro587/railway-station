@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Вхід</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🚆 Вхід до системи</h1>
+        <nav>
+            <a href="index.html">Головна</a>
+            <a href="news.html">Новини</a>
+            <a href="schedule.html">Розклад</a>
+            <a href="contacts.html">Контакти</a>
+            <a href="login.html">Вхід</a>
+            <a href="register.html">Реєстрація</a>
+            <a href="admin.html">Адмін</a>
+        </nav>
+    </header>
+    <main>
+        <div class="form-container">
+            <h2>🔐 Вхід</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button type="submit">Увійти</button>
+            </form>
+            <p>Немає акаунту? <a href="register.html">Зареєструватися</a></p>
+        </div>
+    </main>
+    <script src="auth.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                localStorage.setItem('current_user', JSON.stringify(user));
+                alert('✅ Вхід виконано!');
+                window.location.href = 'profile.html';
+            } else {
+                alert('❌ Невірний email або пароль');
+            }
+        });
+    </script>
+</body>
+</html>
