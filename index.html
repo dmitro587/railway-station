@@ -1,49 +1,21 @@
 <!DOCTYPE html>
 <html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Залізничний вокзал</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+<head><meta charset="UTF-8"><title>Залізничний вокзал</title><link rel="stylesheet" href="style.css"></head>
 <body>
-    <header>
-        <h1>🚆 Залізничний вокзал</h1>
-        <nav>
-            <a href="index.html">Головна</a>
-            <a href="news.html">Новини</a>
-            <a href="schedule.html">Розклад</a>
-            <a href="route.html">Маршрут</a>
-            <a href="contacts.html">Контакти</a>
-            <a href="login.html">Вхід</a>
-            <a href="register.html">Реєстрація</a>
-            <a href="profile.html">Кабінет</a>
-            <a href="admin.html">Адмін</a>
-        </nav>
-    </header>
-    <main>
-        <h2>Популярні маршрути</h2>
-        <div id="popular-routes"></div>
-        <div id="userStatus" style="margin-top: 20px; padding: 10px; background: #e0e0e0; border-radius: 10px;"></div>
-    </main>
+    <header><h1>🚆 Залізничний вокзал</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="route.html">Маршрут</a><a href="contacts.html">Контакти</a><a href="login.html">Вхід</a><a href="register.html">Реєстрація</a><a href="profile.html">Кабінет</a><a href="admin.html">Адмін</a></nav></header>
+    <main><h2>⭐ Популярні маршрути</h2><div id="popular-routes"></div><div id="userStatus" class="route-card"></div></main>
+    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
     <script src="main.js"></script>
     <script>
-        // Показуємо статус користувача
         function showUserStatus() {
             const user = JSON.parse(localStorage.getItem('current_user'));
-            const statusDiv = document.getElementById('userStatus');
-            if (user) {
-                statusDiv.innerHTML = `✅ Ви увійшли як <strong>${user.name}</strong> | <a href="profile.html">Мої квитки</a> | <button onclick="logout()" style="background:#cc0000; padding:5px 10px;">Вийти</button>`;
-            } else {
-                statusDiv.innerHTML = `🔒 Ви не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Зареєструватися</a>`;
-            }
+            const div = document.getElementById('userStatus');
+            if(user) div.innerHTML = `✅ Ви увійшли як ${user.name} | <a href="profile.html">Мої квитки</a> | <button onclick="logout()">Вийти</button>`;
+            else div.innerHTML = `🔒 Не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Реєстрація</a>`;
         }
-        
-        window.logout = function() {
-            localStorage.removeItem('current_user');
-            alert('Ви вийшли з акаунту');
-            location.reload();
-        };
-        
+        function logout() { localStorage.removeItem('current_user'); alert('Вийшли'); location.reload(); }
+        function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); }
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         showUserStatus();
     </script>
 </body>
