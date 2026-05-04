@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Особистий кабінет</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>👤 Особистий кабінет</h1>
+        <nav>
+            <a href="index.html">Головна</a>
+            <a href="news.html">Новини</a>
+            <a href="schedule.html">Розклад</a>
+            <a href="contacts.html">Контакти</a>
+            <a href="login.html">Вхід</a>
+            <a href="register.html">Реєстрація</a>
+            <a href="admin.html">Адмін</a>
+        </nav>
+    </header>
+    <main>
+        <div id="profileInfo"></div>
+        <h2>📋 Мої квитки</h2>
+        <div id="myTickets"></div>
+        <button onclick="logout()" style="background:#cc0000">Вийти</button>
+    </main>
+    <script>
+        function loadProfile() {
+            const user = JSON.parse(localStorage.getItem('current_user'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            document.getElementById('profileInfo').innerHTML = `
+                <div class="route-card">
+                    <h3>Вітаємо, ${user.name}!</h3>
+                    <p>📧 ${user.email}</p>
+                    <p>🆔 ID: ${user.id}</p>
+                </div>
+            `;
+            
+            const ticketsDiv = document.getElementById('myTickets');
+            if (user.tickets && user.tickets.length > 0) {
+                ticketsDiv.innerHTML = user.tickets.map(t => `
+                    <div class="route-card">
+                        <strong>${t.from} → ${t.to}</strong><br>
+                        Дата: ${t.date || 'сьогодні'} | Час: ${t.time}<br>
+                        Ціна: ${t.price} грн<br>
+                        <button onclick="printTicket(${t.id})">🖨 Роздрукувати</button>
+                    </div>
+                `).join('');
+            } else {
+                ticketsDiv.innerHTML = '<p>У вас ще немає квитків. Перейдіть до <a href="schedule.html">розкладу</a>, щоб купити.</p>';
+            }
+        }
+        
+        window.logout = function() {
+            localStorage.removeItem('current_user');
+            window.location.href = 'index.html';
+        };
+        
+        window.printTicket = function(ticketId) {
+            alert('Функція друку квитка буде доступна найближчим часом');
+        };
+        
+        loadProfile();
+    </script>
+</body>
+</html>
