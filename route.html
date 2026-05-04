@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head><meta charset="UTF-8"><title>Маршрут</title><link rel="stylesheet" href="style.css"></head>
+<body>
+    <header><h1>🗺 Деталі маршруту</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="route.html">Маршрут</a><a href="contacts.html">Контакти</a><a href="admin.html">Адмін</a></nav></header>
+    <main><div id="routeDetails"></div></main>
+    <script src="main.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const routeId = urlParams.get('id');
+        if (routeId) {
+            const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
+            const route = routes.find(r => r.id == routeId);
+            if (route) {
+                document.getElementById("routeDetails").innerHTML = `<div class="route-card"><h2>${route.from} → ${route.to}</h2><p>🕐 Час: ${route.time}</p><p>💰 Ціна: ${route.price} грн</p><button onclick="buyTicket(${route.id})">Купити квиток</button><br><br><a href="schedule.html">← Назад до розкладу</a></div>`;
+            } else {
+                document.getElementById("routeDetails").innerHTML = "<p>❌ Маршрут не знайдено</p>";
+            }
+        } else {
+            document.getElementById("routeDetails").innerHTML = "<p>Виберіть маршрут з розкладу</p><a href='schedule.html'>Перейти до розкладу</a>";
+        }
+    </script>
+</body>
+</html>
