@@ -6,6 +6,40 @@
     <title>Розклад поїздів</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .autocomplete-container { position: relative; flex: 1; }
+        .autocomplete-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 1px solid var(--border);
+        }
+        .autocomplete-item:hover { background: var(--btn); color: white; }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .search-box { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; align-items: center; }
+        .search-box button { padding: 10px 20px; }
+        .buy-btn { background: #0066cc; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .buy-btn:hover { background: #004999; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); }
+        th, td { padding: 10px; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--header); color: white; }
+        @media (max-width: 768px) { th, td { font-size: 12px; padding: 5px; } .search-box { flex-direction: column; } .autocomplete-container { width: 100%; } }
+    </style>
 </head>
 <body>
     <header>
@@ -25,10 +59,16 @@
 
     <main>
         <h2>🔍 Пошук квитків</h2>
-        <div class="search-box" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px;">
-            <input type="text" id="searchFrom" placeholder="Звідки (напр. Київ)" style="flex: 1;">
-            <input type="text" id="searchTo" placeholder="Куди (напр. Львів)" style="flex: 1;">
-            <button onclick="searchRoutes()" style="padding: 10px 30px;">🔍 Шукати</button>
+        <div class="search-box">
+            <div class="autocomplete-container">
+                <input type="text" id="searchFrom" class="autocomplete-input" placeholder="🚉 Звідки (напр. Київ)" autocomplete="off">
+                <div id="fromAutocomplete" class="autocomplete-list"></div>
+            </div>
+            <div class="autocomplete-container">
+                <input type="text" id="searchTo" class="autocomplete-input" placeholder="📍 Куди (напр. Львів)" autocomplete="off">
+                <div id="toAutocomplete" class="autocomplete-list"></div>
+            </div>
+            <button onclick="searchRoutes()">🔍 Шукати</button>
             <button onclick="clearSearch()" style="background: #666;">🗑 Очистити</button>
         </div>
         
@@ -60,6 +100,16 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
+        // ========== ВСІ СТАНЦІЇ ДЛЯ АВТОДОПОВНЕННЯ ==========
+        const allStations = [
+            "Київ", "Львів", "Одеса", "Харків", "Дніпро", "Запоріжжя", "Вінниця", "Житомир", "Чернігів", "Суми", 
+            "Полтава", "Тернопіль", "Луцьк", "Рівне", "Хмельницький", "Чернівці", "Ужгород", "Івано-Франківськ", 
+            "Миколаїв", "Херсон", "Кропивницький", "Кременчук", "Біла Церква", "Умань", "Фастів", "Ніжин", 
+            "Бахмач", "Стрий", "Мукачево", "Галич", "Золочів", "Червоноград", "Ізюм", "Слов'янськ", "Краматорськ",
+            "Луганськ", "Донецьк", "Коростень", "Новоград-Волинський", "Шостка", "Конотоп", "Ромни", "Миргород",
+            "Лубни", "Пирятин", "Бровари", "Бориспіль", "Ірпінь", "Буча", "Вишгород", "Боярка"
+        ];
+
         // ========== ВСІ МАРШРУТИ УКРАЇНИ (50+ маршрутів) ==========
         let routes = [
             // Центральна Україна
@@ -128,21 +178,13 @@
         ];
 
         // ========== ЗБЕРЕЖЕННЯ ТА ЗАВАНТАЖЕННЯ ==========
-        function saveRoutes() { 
-            localStorage.setItem("railway_routes", JSON.stringify(routes)); 
-        }
-        
-        function loadRoutes() { 
-            const saved = localStorage.getItem("railway_routes"); 
-            if(saved) routes = JSON.parse(saved); 
-            else saveRoutes(); 
-        }
+        function saveRoutes() { localStorage.setItem("railway_routes", JSON.stringify(routes)); }
+        function loadRoutes() { const saved = localStorage.getItem("railway_routes"); if(saved) routes = JSON.parse(saved); else saveRoutes(); }
 
         // ========== ПОКАЗ ВСІХ МАРШРУТІВ ==========
         function showAllRoutes() {
             const tbody = document.getElementById("routesList");
             if(!tbody) return;
-            
             tbody.innerHTML = routes.map(r => `
                 <tr>
                     <td><strong>${r.from}</strong></td>
@@ -154,9 +196,38 @@
                     <td><button class="buy-btn" onclick="buyTicket(${r.id})">🎫 Купити</button></td>
                 </tr>
             `).join('');
-            
             document.getElementById("totalCount").innerText = routes.length;
         }
+
+        // ========== АВТОДОПОВНЕННЯ ==========
+        function setupAutocomplete(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+            
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                if(value.length < 1) {
+                    list.style.display = 'none';
+                    return;
+                }
+                const filtered = allStations.filter(s => s.toLowerCase().includes(value));
+                if(filtered.length > 0) {
+                    list.innerHTML = filtered.map(s => `<div class="autocomplete-item" onclick="selectStation('${inputId}', '${s}')">${s}</div>`).join('');
+                    list.style.display = 'block';
+                } else {
+                    list.style.display = 'none';
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                setTimeout(() => list.style.display = 'none', 200);
+            });
+        }
+        
+        window.selectStation = function(inputId, station) {
+            document.getElementById(inputId).value = station;
+            document.getElementById(inputId === 'searchFrom' ? 'fromAutocomplete' : 'toAutocomplete').style.display = 'none';
+        };
 
         // ========== ПОШУК МАРШРУТІВ ==========
         window.searchRoutes = function() {
@@ -261,7 +332,6 @@
                             localStorage.setItem('railway_users', JSON.stringify(users));
                             localStorage.setItem('current_user', JSON.stringify(user));
                             
-                            // Статистика продажів
                             let stats = JSON.parse(localStorage.getItem('ticket_stats') || '[]');
                             stats.push({ routeId, from: route.from, to: route.to, price: route.price, date: new Date().toLocaleDateString() });
                             localStorage.setItem('ticket_stats', JSON.stringify(stats));
@@ -283,12 +353,22 @@
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
         }
         
-        // Завантаження збереженої теми
-        if(localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark');
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        
+        // ========== ПЕРЕВІРКА ЗБЕРЕЖЕНОГО ПОШУКУ ==========
+        const savedFrom = localStorage.getItem('search_from');
+        const savedTo = localStorage.getItem('search_to');
+        if(savedFrom && savedTo) {
+            document.getElementById('searchFrom').value = savedFrom;
+            document.getElementById('searchTo').value = savedTo;
+            searchRoutes();
+            localStorage.removeItem('search_from');
+            localStorage.removeItem('search_to');
         }
         
         // ========== ІНІЦІАЛІЗАЦІЯ ==========
+        setupAutocomplete('searchFrom', 'fromAutocomplete');
+        setupAutocomplete('searchTo', 'toAutocomplete');
         loadRoutes();
         showAllRoutes();
     </script>
