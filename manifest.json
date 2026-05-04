@@ -1,0 +1,15 @@
+{
+  "name": "Залізничний вокзал",
+  "short_name": "RailWay",
+  "start_url": "/Railway-station/",
+  "display": "standalone",
+  "theme_color": "#003366",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/96/train.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ]
+}
