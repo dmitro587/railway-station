@@ -2,31 +2,270 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Карта маршрутів</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 550px; border-radius: 15px; margin: 20px 0; }
+        .route-filter { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; }
+        .route-filter select, .route-filter button { padding: 10px; border-radius: 8px; }
+        .legend { background: var(--card); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; }
+        .legend span { display: inline-block; width: 20px; height: 3px; margin-right: 5px; vertical-align: middle; }
+    </style>
 </head>
 <body>
-    <header><h1>🗺 Карта маршрутів</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="map.html">Карта</a><a href="contacts.html">Контакти</a><a href="login.html">Вхід</a><a href="register.html">Реєстрація</a><a href="profile.html">Кабінет</a><a href="admin.html">Адмін</a></nav></header>
-    <main><div id="map" style="height: 500px; border-radius: 10px;"></div></main>
+    <header>
+        <h1>🗺 Карта залізничних маршрутів України</h1>
+        <nav>
+            <a href="index.html">🏠 Головна</a>
+            <a href="news.html">📰 Новини</a>
+            <a href="schedule.html">📅 Розклад</a>
+            <a href="map.html">🗺 Карта</a>
+            <a href="contacts.html">📞 Контакти</a>
+            <a href="login.html">🔐 Вхід</a>
+            <a href="register.html">📝 Реєстрація</a>
+            <a href="profile.html">👤 Кабінет</a>
+            <a href="admin.html">⚙ Адмін</a>
+        </nav>
+    </header>
+    <main>
+        <h2>🗺 Всі маршрути на карті</h2>
+        <div class="route-filter">
+            <select id="routeSelect">
+                <option value="all">📌 Всі маршрути</option>
+            </select>
+            <button onclick="filterRoute()">🔍 Показати маршрут</button>
+            <button onclick="resetMap()">🗑 Скинути</button>
+            <button onclick="showAllStations()">📍 Всі станції</button>
+        </div>
+        <div id="map"></div>
+        <div class="legend">
+            <strong>Легенда:</strong><br>
+            <span style="background: #0066cc;"></span> Основні маршрути &nbsp;&nbsp;
+            <span style="background: #e94560;"></span> Проміжні зупинки &nbsp;&nbsp;
+            <span style="background: #ff9900;"></span> Кінцеві станції &nbsp;&nbsp;
+            📍 = Станція
+        </div>
+    </main>
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
     <script>
-        const map = L.map('map').setView([49.0, 31.0], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-        const routes = JSON.parse(localStorage.getItem('railway_routes') || '[]');
-        const cities = { 'Київ': [50.4501, 30.5234], 'Львів': [49.8397, 24.0297], 'Харків': [49.9935, 36.2304], 'Одеса': [46.4825, 30.7233] };
-        routes.forEach(route => {
-            const fromCoord = cities[route.from];
-            const toCoord = cities[route.to];
-            if(fromCoord && toCoord) {
-                L.marker(fromCoord).addTo(map).bindPopup(route.from);
-                L.marker(toCoord).addTo(map).bindPopup(route.to);
-                L.polyline([fromCoord, toCoord], { color: '#0066cc', weight: 3 }).addTo(map).bindPopup(`${route.from} → ${route.to}<br>Час: ${route.time}<br>Ціна: ${route.price} грн`);
+        // ========== КООРДИНАТИ СТАНЦІЙ ==========
+        const coordinates = {
+            "Київ": [50.4501, 30.5234],
+            "Львів": [49.8397, 24.0297],
+            "Одеса": [46.4825, 30.7233],
+            "Харків": [49.9935, 36.2304],
+            "Дніпро": [48.4647, 35.0462],
+            "Запоріжжя": [47.8388, 35.1396],
+            "Вінниця": [49.2333, 28.4833],
+            "Житомир": [50.2547, 28.6587],
+            "Чернігів": [51.4983, 31.2893],
+            "Суми": [50.9077, 34.7981],
+            "Полтава": [49.5895, 34.5508],
+            "Тернопіль": [49.5535, 25.5948],
+            "Луцьк": [50.7472, 25.3254],
+            "Рівне": [50.6199, 26.2516],
+            "Хмельницький": [49.4229, 26.9974],
+            "Чернівці": [48.2915, 25.9403],
+            "Ужгород": [48.6208, 22.2879],
+            "Івано-Франківськ": [48.9226, 24.7111],
+            "Миколаїв": [46.975, 31.9946],
+            "Херсон": [46.6354, 32.6169],
+            "Кропивницький": [48.5103, 32.2667],
+            "Кременчук": [49.065, 33.4167],
+            "Біла Церква": [49.8094, 30.1123],
+            "Умань": [48.7484, 30.2218],
+            "Фастів": [50.0774, 29.9173],
+            "Ніжин": [51.0478, 31.8863],
+            "Бахмач": [51.1814, 32.8346],
+            "Стрий": [49.2561, 23.8478],
+            "Мукачево": [48.4495, 22.7244],
+            "Галич": [49.1242, 24.7314],
+            "Золочів": [49.8061, 24.8957],
+            "Червоноград": [50.3829, 24.2277],
+            "Ізюм": [49.2076, 37.2589],
+            "Слов'янськ": [48.8606, 37.6194],
+            "Краматорськ": [48.7211, 37.5896],
+            "Луганськ": [48.5746, 39.3078],
+            "Донецьк": [48.0159, 37.8029]
+        };
+
+        // ========== ВСІ МАРШРУТИ (50+) ==========
+        const routes = [
+            { id: 1, from: "Київ", to: "Львів", via: ["Житомир", "Рівне"], price: 450, time: "08:00", duration: "5 год" },
+            { id: 2, from: "Київ", to: "Одеса", via: ["Біла Церква", "Умань"], price: 420, time: "09:30", duration: "4.5 год" },
+            { id: 3, from: "Київ", to: "Харків", via: ["Полтава"], price: 380, time: "07:15", duration: "4.5 год" },
+            { id: 4, from: "Київ", to: "Дніпро", via: ["Кременчук"], price: 350, time: "10:00", duration: "4 год" },
+            { id: 5, from: "Київ", to: "Запоріжжя", via: ["Кременчук", "Дніпро"], price: 400, time: "11:30", duration: "5 год" },
+            { id: 6, from: "Київ", to: "Вінниця", via: ["Фастів"], price: 280, time: "12:45", duration: "2.5 год" },
+            { id: 7, from: "Київ", to: "Житомир", via: [], price: 200, time: "14:00", duration: "1.5 год" },
+            { id: 8, from: "Київ", to: "Чернігів", via: [], price: 220, time: "15:30", duration: "2 год" },
+            { id: 9, from: "Київ", to: "Суми", via: ["Ніжин", "Бахмач"], price: 320, time: "08:45", duration: "3.5 год" },
+            { id: 10, from: "Київ", to: "Полтава", via: [], price: 300, time: "16:20", duration: "3 год" },
+            { id: 11, from: "Львів", to: "Київ", via: ["Рівне", "Житомир"], price: 460, time: "07:00", duration: "5.5 год" },
+            { id: 12, from: "Львів", to: "Ужгород", via: ["Стрий", "Мукачево"], price: 350, time: "08:30", duration: "3.5 год" },
+            { id: 13, from: "Львів", to: "Івано-Франківськ", via: ["Галич"], price: 280, time: "10:00", duration: "2.5 год" },
+            { id: 14, from: "Львів", to: "Тернопіль", via: ["Золочів"], price: 220, time: "11:30", duration: "2 год" },
+            { id: 15, from: "Львів", to: "Луцьк", via: ["Червоноград"], price: 250, time: "13:00", duration: "2.5 год" },
+            { id: 16, from: "Львів", to: "Рівне", via: [], price: 280, time: "14:30", duration: "2.5 год" },
+            { id: 17, from: "Львів", to: "Хмельницький", via: ["Тернопіль"], price: 300, time: "15:45", duration: "3 год" },
+            { id: 18, from: "Львів", to: "Чернівці", via: ["Івано-Франківськ"], price: 320, time: "17:00", duration: "3.5 год" },
+            { id: 19, from: "Львів", to: "Одеса", via: ["Тернопіль", "Хмельницький", "Вінниця"], price: 550, time: "20:00", duration: "9.5 год" },
+            { id: 20, from: "Львів", to: "Харків", via: ["Тернопіль", "Вінниця", "Київ"], price: 650, time: "22:00", duration: "11 год" },
+            { id: 21, from: "Харків", to: "Київ", via: ["Полтава"], price: 400, time: "06:30", duration: "4.5 год" },
+            { id: 22, from: "Харків", to: "Дніпро", via: [], price: 280, time: "08:00", duration: "2.5 год" },
+            { id: 23, from: "Харків", to: "Одеса", via: ["Дніпро", "Запоріжжя", "Миколаїв"], price: 520, time: "10:30", duration: "6 год" },
+            { id: 24, from: "Харків", to: "Запоріжжя", via: ["Дніпро"], price: 320, time: "09:30", duration: "3 год" },
+            { id: 25, from: "Харків", to: "Суми", via: [], price: 250, time: "14:00", duration: "2.5 год" },
+            { id: 26, from: "Харків", to: "Полтава", via: [], price: 220, time: "15:30", duration: "2 год" },
+            { id: 27, from: "Харків", to: "Луганськ", via: ["Ізюм", "Слов'янськ"], price: 350, time: "12:30", duration: "4 год" },
+            { id: 28, from: "Харків", to: "Донецьк", via: ["Слов'янськ", "Краматорськ"], price: 300, time: "11:00", duration: "3.5 год" },
+            { id: 29, from: "Харків", to: "Львів", via: ["Київ"], price: 650, time: "21:00", duration: "11 год" },
+            { id: 30, from: "Харків", to: "Ужгород", via: ["Київ", "Львів"], price: 680, time: "20:00", duration: "12 год" },
+            { id: 31, from: "Одеса", to: "Київ", via: ["Умань", "Біла Церква"], price: 440, time: "08:00", duration: "5 год" },
+            { id: 32, from: "Одеса", to: "Миколаїв", via: [], price: 180, time: "09:30", duration: "1.5 год" },
+            { id: 33, from: "Одеса", to: "Херсон", via: [], price: 220, time: "11:00", duration: "2 год" },
+            { id: 34, from: "Одеса", to: "Запоріжжя", via: ["Миколаїв", "Херсон"], price: 350, time: "12:30", duration: "3.5 год" },
+            { id: 35, from: "Одеса", to: "Вінниця", via: ["Умань"], price: 380, time: "14:00", duration: "4.5 год" },
+            { id: 36, from: "Одеса", to: "Кропивницький", via: [], price: 320, time: "15:30", duration: "3 год" },
+            { id: 37, from: "Дніпро", to: "Львів", via: ["Кременчук", "Кропивницький", "Вінниця"], price: 580, time: "20:00", duration: "10 год" },
+            { id: 38, from: "Дніпро", to: "Одеса", via: ["Миколаїв"], price: 420, time: "13:30", duration: "5 год" },
+            { id: 39, from: "Запоріжжя", to: "Львів", via: ["Дніпро", "Кропивницький", "Вінниця"], price: 620, time: "19:00", duration: "11 год" },
+            { id: 40, from: "Вінниця", to: "Львів", via: ["Хмельницький", "Тернопіль"], price: 350, time: "09:00", duration: "4 год" },
+            { id: 41, from: "Вінниця", to: "Одеса", via: ["Умань"], price: 380, time: "11:00", duration: "4.5 год" },
+            { id: 42, from: "Чернівці", to: "Київ", via: ["Івано-Франківськ", "Тернопіль", "Житомир"], price: 450, time: "08:00", duration: "6 год" },
+            { id: 43, from: "Ужгород", to: "Київ", via: ["Мукачево", "Стрий", "Львів"], price: 580, time: "06:00", duration: "8 год" },
+            { id: 44, from: "Івано-Франківськ", to: "Київ", via: ["Галич", "Тернопіль", "Житомир"], price: 480, time: "07:00", duration: "6.5 год" },
+            { id: 45, from: "Луцьк", to: "Київ", via: ["Рівне", "Житомир"], price: 400, time: "08:30", duration: "5 год" },
+            { id: 46, from: "Рівне", to: "Київ", via: ["Житомир"], price: 380, time: "09:00", duration: "4.5 год" },
+            { id: 47, from: "Тернопіль", to: "Київ", via: ["Хмельницький", "Вінниця", "Фастів"], price: 400, time: "10:00", duration: "5 год" },
+            { id: 48, from: "Хмельницький", to: "Київ", via: ["Вінниця", "Фастів"], price: 320, time: "07:30", duration: "3.5 год" },
+            { id: 49, from: "Чернігів", to: "Одеса", via: ["Київ", "Умань", "Біла Церква"], price: 480, time: "08:30", duration: "6.5 год" },
+            { id: 50, from: "Суми", to: "Миколаїв", via: ["Полтава", "Кременчук", "Кропивницький"], price: 460, time: "09:00", duration: "6 год" }
+        ];
+
+        let map;
+        let currentLayer = null;
+        let markers = [];
+
+        // Ініціалізація карти
+        function initMap() {
+            map = L.map('map').setView([49.0, 31.0], 6);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+            }).addTo(map);
+            
+            // Додаємо всі маршрути
+            showAllRoutes();
+            
+            // Додаємо станції в випадаючий список
+            const select = document.getElementById('routeSelect');
+            routes.forEach(route => {
+                const option = document.createElement('option');
+                option.value = route.id;
+                option.textContent = `${route.from} → ${route.to} (${route.time})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Показати всі маршрути
+        function showAllRoutes() {
+            if (currentLayer) map.removeLayer(currentLayer);
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            
+            const allStations = new Set();
+            routes.forEach(route => {
+                const points = [coordinates[route.from], ...(route.via?.map(s => coordinates[s]) || []), coordinates[route.to]].filter(p => p);
+                if(points.length > 1) {
+                    const line = L.polyline(points, { color: '#0066cc', weight: 3, opacity: 0.7 });
+                    line.addTo(map);
+                    if(currentLayer) map.removeLayer(currentLayer);
+                    currentLayer = line;
+                }
+            });
+            
+            // Додаємо маркери станцій
+            const allStationNames = new Set();
+            routes.forEach(route => {
+                allStationNames.add(route.from);
+                allStationNames.add(route.to);
+                route.via?.forEach(s => allStationNames.add(s));
+            });
+            
+            allStationNames.forEach(station => {
+                const coord = coordinates[station];
+                if(coord) {
+                    const isTerminal = routes.some(r => r.to === station || r.from === station);
+                    const color = isTerminal ? '#ff9900' : '#e94560';
+                    const marker = L.circleMarker(coord, { radius: 6, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.8 })
+                        .bindPopup(`<b>${station}</b><br>📌 Залізнична станція`)
+                        .addTo(map);
+                    markers.push(marker);
+                }
+            });
+        }
+
+        // Фільтр за маршрутом
+        function filterRoute() {
+            const routeId = parseInt(document.getElementById('routeSelect').value);
+            if(!routeId || routeId === 'all') return showAllRoutes();
+            
+            const route = routes.find(r => r.id === routeId);
+            if(!route) return;
+            
+            if(currentLayer) map.removeLayer(currentLayer);
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            
+            const points = [coordinates[route.from], ...(route.via?.map(s => coordinates[s]) || []), coordinates[route.to]].filter(p => p);
+            const line = L.polyline(points, { color: '#e94560', weight: 5 });
+            line.addTo(map);
+            currentLayer = line;
+            map.fitBounds(line.getBounds());
+            
+            // Додаємо маркери для цього маршруту
+            [route.from, ...(route.via || []), route.to].forEach(station => {
+                const coord = coordinates[station];
+                if(coord) {
+                    const marker = L.circleMarker(coord, { radius: 8, fillColor: '#ff9900', color: '#fff', weight: 2 })
+                        .bindPopup(`<b>${station}</b><br>🕐 ${route.time}<br>💰 ${route.price} грн`)
+                        .addTo(map);
+                    markers.push(marker);
+                }
+            });
+        }
+
+        // Скинути карту
+        function resetMap() {
+            showAllRoutes();
+            map.setView([49.0, 31.0], 6);
+            document.getElementById('routeSelect').value = 'all';
+        }
+
+        // Показати всі станції
+        function showAllStations() {
+            resetMap();
+            Swal.fire('Показано всі станції', `Всього станцій: ${markers.length}`, 'info');
+        }
+
+        // Темна тема для карти
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+            // Оновлюємо карту
+            if(map) {
+                map.remove();
+                initMap();
             }
-        });
-        function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); }
+        }
+
         if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        
+        window.onload = initMap;
     </script>
 </body>
 </html>
