@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head><meta charset="UTF-8"><title>Адмін панель</title><link rel="stylesheet" href="style.css"></head>
+<body>
+    <header><h1>🔧 Адмін панель</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="route.html">Маршрут</a><a href="contacts.html">Контакти</a><a href="admin.html">Адмін</a></nav></header>
+    <main>
+        <h2>➕ Додати маршрут</h2>
+        <div class="route-card">
+            <input type="text" id="newFrom" placeholder="Звідки">
+            <input type="text" id="newTo" placeholder="Куди">
+            <input type="text" id="newTime" placeholder="Час">
+            <input type="number" id="newPrice" placeholder="Ціна">
+            <button onclick="addRoute()">➕ Додати</button>
+        </div>
+        <h2>📋 Керування</h2>
+        <div id="adminRoutes"></div>
+    </main>
+    <script src="main.js"></script>
+    <script>
+        function showAdminRoutes() {
+            const container = document.getElementById("adminRoutes");
+            const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
+            container.innerHTML = routes.map(r => `<div class="route-card"><strong>${r.from}→${r.to}</strong> ${r.time} ${r.price}грн <button onclick="deleteRoute(${r.id})" style="background:#cc0000">Видалити</button> <button onclick="editRoute(${r.id})" style="background:#ff9900">Редагувати</button></div>`).join("");
+        }
+        window.addRoute = function() {
+            const from = document.getElementById("newFrom").value, to = document.getElementById("newTo").value, time = document.getElementById("newTime").value, price = document.getElementById("newPrice").value;
+            if (!from || !to || !time || !price) return alert("Заповніть поля!");
+            const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
+            const newId = routes.length ? Math.max(...routes.map(r => r.id)) + 1 : 1;
+            routes.push({ id: newId, from, to, time, price: Number(price) });
+            localStorage.setItem("railway_routes", JSON.stringify(routes));
+            showAdminRoutes();
+            alert("✅ Маршрут додано!");
+        };
+        window.deleteRoute = function(id) {
+            if (!confirm("Видалити?")) return;
+            let routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
+            routes = routes.filter(r => r.id !== id);
+            localStorage.setItem("railway_routes", JSON.stringify(routes));
+            showAdminRoutes();
+        };
+        window.editRoute = function(id) {
+            const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
+            const route = routes.find(r => r.id === id);
+            if (!route) return;
+            const newFrom = prompt("Звідки:", route.from), newTo = prompt("Куди:", route.to), newTime = prompt("Час:", route.time), newPrice = prompt("Ціна:", route.price);
+            if (newFrom && newTo && newTime && newPrice) {
+                route.from = newFrom; route.to = newTo; route.time = newTime; route.price = Number(newPrice);
+                localStorage.setItem("railway_routes", JSON.stringify(routes));
+                showAdminRoutes();
+            }
+        };
+        showAdminRoutes();
+    </script>
+</body>
+</html>
