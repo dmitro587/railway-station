@@ -1,83 +1,130 @@
-/* Базові стилі */
+/* ========== ЗМІННІ ДЛЯ ТЕМ ========== */
 :root {
     --bg: #f0f2f5;
-    --card: white;
-    --text: #333;
+    --card: #ffffff;
+    --text: #333333;
     --header: #003366;
-    --header-text: white;
+    --header-text: #ffffff;
     --btn: #0066cc;
     --btn-hover: #004999;
-    --border: #ddd;
+    --border: #dddddd;
+    --shadow: rgba(0, 0, 0, 0.1);
 }
 
 body.dark {
     --bg: #1a1a2e;
     --card: #16213e;
-    --text: #eee;
+    --text: #eeeeee;
     --header: #0f3460;
-    --header-text: #eee;
+    --header-text: #eeeeee;
     --btn: #e94560;
     --btn-hover: #c62a48;
     --border: #2a2a4a;
+    --shadow: rgba(0, 0, 0, 0.3);
+}
+
+/* ========== БАЗОВІ СТИЛІ ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--bg);
     color: var(--text);
     transition: all 0.3s ease;
+    line-height: 1.6;
 }
 
+/* ========== ХЕДЕР ========== */
 header {
     background: var(--header);
     color: var(--header-text);
-    padding: 1rem;
+    padding: 1.5rem;
     text-align: center;
+    box-shadow: 0 4px 10px var(--shadow);
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* ========== НАВІГАЦІЯ ========== */
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 nav a {
     color: var(--header-text);
-    margin: 0 10px;
     text-decoration: none;
-    transition: 0.3s;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
 }
 
 nav a:hover {
-    text-decoration: underline;
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
 }
 
+/* ========== ОСНОВНИЙ КОНТЕНТ ========== */
 main {
-    padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 2rem;
 }
 
-/* Картки маршрутів */
-.route-card, .news-item, .review-card {
+h2 {
+    margin-bottom: 1.5rem;
+    color: var(--text);
+    border-left: 4px solid var(--btn);
+    padding-left: 1rem;
+}
+
+h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+/* ========== КАРТКИ МАРШРУТІВ ========== */
+.route-card {
     background: var(--card);
-    border-radius: 10px;
-    padding: 15px;
-    margin: 10px 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: transform 0.3s, box-shadow 0.3s;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px var(--shadow);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border);
 }
 
 .route-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow);
 }
 
+.route-card strong {
+    font-size: 1.2rem;
+    color: var(--btn);
+}
+
+/* ========== КНОПКИ ========== */
 button {
     background: var(--btn);
     color: white;
     border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
     cursor: pointer;
-    transition: 0.3s;
+    font-size: 0.9rem;
+    margin: 0.3rem;
+    transition: all 0.3s ease;
 }
 
 button:hover {
@@ -85,23 +132,40 @@ button:hover {
     transform: scale(1.02);
 }
 
-input, select {
-    padding: 8px;
-    margin: 5px;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    background: var(--card);
-    color: var(--text);
+button:active {
+    transform: scale(0.98);
 }
 
+/* ========== ПОЛЯ ВВОДУ ========== */
+input, select, textarea {
+    padding: 0.7rem;
+    margin: 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--btn);
+    box-shadow: 0 0 5px var(--btn);
+}
+
+/* ========== ТАБЛИЦІ ========== */
 table {
     width: 100%;
     background: var(--card);
     border-collapse: collapse;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
 th, td {
-    padding: 10px;
+    padding: 0.8rem;
     border: 1px solid var(--border);
     text-align: left;
 }
@@ -109,48 +173,283 @@ th, td {
 th {
     background: var(--header);
     color: var(--header-text);
+    font-weight: 600;
 }
 
-/* Сітка місць у вагоні */
+tr:hover {
+    background: rgba(0, 102, 204, 0.05);
+}
+
+body.dark tr:hover {
+    background: rgba(233, 69, 96, 0.1);
+}
+
+/* ========== НОВИНИ ========== */
+.news-item {
+    background: var(--card);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--btn);
+}
+
+.news-item:hover {
+    transform: translateX(5px);
+}
+
+/* ========== ВІДГУКИ ========== */
+.review-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    border: 1px solid var(--border);
+}
+
+/* ========== СІТКА МІСЦЬ У ВАГОНІ ========== */
 .seat-grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 10px;
-    margin: 20px 0;
+    gap: 0.8rem;
+    margin: 1rem 0;
 }
 
 .seat {
     background: #4caf50;
     color: white;
-    padding: 10px;
+    padding: 0.8rem;
     text-align: center;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
 }
 
-.seat:hover { transform: scale(1.05); }
-.seat.taken { background: #999; cursor: not-allowed; }
-.seat.selected { background: #ff9800; }
+.seat:hover {
+    transform: scale(1.05);
+    background: #45a049;
+}
 
-/* Кнопка темної теми */
-.theme-toggle {
+.seat.taken {
+    background: #999;
+    cursor: not-allowed;
+}
+
+.seat.selected {
+    background: var(--btn);
+}
+
+/* ========== КНОПКА ТЕМНОЇ ТЕМИ ========== */
+.theme-btn {
     position: fixed;
     bottom: 20px;
     right: 20px;
     background: var(--btn);
+    color: white;
+    border: none;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
+    width: 55px;
+    height: 55px;
+    font-size: 1.8rem;
     cursor: pointer;
     z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
 }
 
-/* Адаптивність */
+.theme-btn:hover {
+    transform: scale(1.1) rotate(10deg);
+}
+
+/* ========== КАРТА (LEAFLET) ========== */
+#map {
+    height: 500px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px var(--shadow);
+}
+
+.leaflet-popup-content {
+    color: #333;
+}
+
+/* ========== QR-КОД ========== */
+#qrcode {
+    display: inline-block;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 10px;
+}
+
+/* ========== АДАПТИВНІСТЬ (МОБІЛЬНІ ТЕЛЕФОНИ) ========== */
 @media (max-width: 768px) {
-    main { padding: 10px; }
-    nav a { font-size: 12px; margin: 0 5px; }
-    table { font-size: 12px; }
-    .seat-grid { grid-template-columns: repeat(4, 1fr); }
+    main {
+        padding: 1rem;
+    }
+    
+    nav a {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    header h1 {
+        font-size: 1.3rem;
+    }
+    
+    h2 {
+        font-size: 1.2rem;
+    }
+    
+    .route-card strong {
+        font-size: 1rem;
+    }
+    
+    button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    th, td {
+        padding: 0.4rem;
+        font-size: 0.75rem;
+    }
+    
+    .seat-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .seat {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .theme-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    #map {
+        height: 350px;
+    }
+}
+
+/* ========== ПЛАНШЕТИ ========== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    main {
+        padding: 1.5rem;
+    }
+    
+    .seat-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* ========== АНІМАЦІЇ ========== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.route-card, .news-item {
+    animation: fadeIn 0.5s ease;
+}
+
+/* ========== ПОЛОСА ПРОГРЕСУ ДЛЯ ЗАВАНТАЖЕННЯ ========== */
+.loader {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loader::after {
+    content: '';
+    display: block;
+    width: 30%;
+    height: 100%;
+    background: var(--btn);
+    animation: loading 1s infinite;
+}
+
+@keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+}
+
+/* ========== ФОРМИ ========== */
+.form-container {
+    max-width: 450px;
+    margin: 2rem auto;
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px var(--shadow);
+}
+
+.form-container input {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.form-container button {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+/* ========== СТАТИСТИКА В АДМІНЦІ ========== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--btn);
+}
+
+/* ========== ПОВІДОМЛЕННЯ (SWEETALERT2) ========== */
+.swal2-popup {
+    background: var(--card) !important;
+    color: var(--text) !important;
+}
+
+.swal2-title {
+    color: var(--text) !important;
+}
+
+.swal2-confirm {
+    background: var(--btn) !important;
+}
+
+/* =========- ФУТЕР ========== */
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--header);
+    color: var(--header-text);
+    margin-top: 2rem;
 }
