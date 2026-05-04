@@ -6,20 +6,115 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <header><h1>🔧 Адмін панель</h1><nav><a href="index.html">Головна</a><a href="news.html">Новини</a><a href="schedule.html">Розклад</a><a href="map.html">Карта</a><a href="contacts.html">Контакти</a><a href="login.html">Вхід</a><a href="register.html">Реєстрація</a><a href="profile.html">Кабінет</a><a href="admin.html">Адмін</a></nav></header>
+    <header>
+        <h1>🔧 Адмін панель</h1>
+        <nav>
+            <a href="index.html">🏠 Головна</a>
+            <a href="news.html">📰 Новини</a>
+            <a href="schedule.html">📅 Розклад</a>
+            <a href="map.html">🗺 Карта</a>
+            <a href="contacts.html">📞 Контакти</a>
+            <a href="login.html">🔐 Вхід</a>
+            <a href="register.html">📝 Реєстрація</a>
+            <a href="profile.html">👤 Кабінет</a>
+            <a href="admin.html">⚙ Адмін</a>
+        </nav>
+    </header>
     <main>
-        <h2>📊 Статистика продажів</h2>
-        <div id="stats" class="route-card"></div>
-        <canvas id="popularityChart" width="400" height="200"></canvas>
-        <h2>➕ Додати маршрут</h2>
-        <div class="route-card"><input id="newFrom" placeholder="Звідки"> <input id="newTo" placeholder="Куди"> <input id="newTime" placeholder="Час"> <input id="newPrice" placeholder="Ціна"> <button onclick="addRoute()">➕ Додати</button></div>
-        <h2>📋 Керування маршрутами</h2>
-        <div id="adminRoutes"></div>
+        <div id="adminContent" style="display: none;">
+            <h2>📊 Статистика продажів</h2>
+            <div id="stats" class="route-card"></div>
+            <canvas id="popularityChart" width="400" height="200"></canvas>
+            <h2>➕ Додати маршрут</h2>
+            <div class="route-card">
+                <input id="newFrom" placeholder="Звідки"> 
+                <input id="newTo" placeholder="Куди"> 
+                <input id="newTime" placeholder="Час"> 
+                <input id="newPrice" placeholder="Ціна"> 
+                <button onclick="addRoute()">➕ Додати</button>
+            </div>
+            <h2>📋 Керування маршрутами</h2>
+            <div id="adminRoutes"></div>
+        </div>
+        <div id="loginForm" style="display: none;" class="form-container">
+            <h2>🔐 Вхід для адміністратора</h2>
+            <input type="text" id="adminLogin" placeholder="Логін">
+            <input type="password" id="adminPassword" placeholder="Пароль">
+            <button onclick="checkAdminLogin()">Увійти</button>
+            <p style="margin-top: 1rem;"><a href="index.html">← Повернутися на головну</a></p>
+        </div>
     </main>
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    
     <script>
+        // ========== ДАНІ АДМІНІСТРАТОРА ==========
+        // Логін: admin
+        // Пароль: admin123
+        const ADMIN_CREDENTIALS = {
+            login: "admin",
+            password: "admin123"
+        };
+        
+        // Перевірка, чи залогінений адмін
+        function isAdminLoggedIn() {
+            return localStorage.getItem('admin_logged_in') === 'true';
+        }
+        
+        // Вихід адміна
+        function adminLogout() {
+            localStorage.removeItem('admin_logged_in');
+            Swal.fire('Ви вийшли', 'До побачення!', 'info').then(() => {
+                location.reload();
+            });
+        }
+        
+        // Перевірка логіну адміна
+        function checkAdminLogin() {
+            const login = document.getElementById('adminLogin').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            if(login === ADMIN_CREDENTIALS.login && password === ADMIN_CREDENTIALS.password) {
+                localStorage.setItem('admin_logged_in', 'true');
+                Swal.fire('Успіх!', 'Вітаємо в адмін панелі!', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Помилка!', 'Невірний логін або пароль', 'error');
+            }
+        }
+        
+        // Показуємо правильний інтерфейс
+        function showAdminInterface() {
+            if(isAdminLoggedIn()) {
+                document.getElementById('adminContent').style.display = 'block';
+                document.getElementById('loginForm').style.display = 'none';
+                showStats();
+                showAdminRoutes();
+                
+                // Додаємо кнопку виходу в хедер
+                const header = document.querySelector('header');
+                if(!document.getElementById('adminLogoutBtn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'adminLogoutBtn';
+                    logoutBtn.innerHTML = '🚪 Вихід з адмінки';
+                    logoutBtn.style.position = 'absolute';
+                    logoutBtn.style.right = '20px';
+                    logoutBtn.style.top = '20px';
+                    logoutBtn.style.background = '#cc0000';
+                    logoutBtn.onclick = adminLogout;
+                    header.style.position = 'relative';
+                    header.appendChild(logoutBtn);
+                }
+            } else {
+                document.getElementById('adminContent').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+            }
+        }
+        
+        // ========== СТАТИСТИКА ==========
         let chart;
         function showStats() {
             const stats = JSON.parse(localStorage.getItem('ticket_stats') || '[]');
@@ -33,11 +128,13 @@
             const ctx = document.getElementById('popularityChart').getContext('2d');
             chart = new Chart(ctx, { type: 'bar', data: { labels: popularList.map(p=>p[0]), datasets: [{ label: 'Кількість продажів', data: popularList.map(p=>p[1]), backgroundColor: '#0066cc' }] }, options: { responsive: true } });
         }
+        
         function showAdminRoutes() {
             const container = document.getElementById("adminRoutes");
             const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
-            container.innerHTML = routes.map(r => `<div class="route-card"><strong>${r.from}→${r.to}</strong> ${r.time} ${r.price}грн <button onclick="deleteRoute(${r.id})" style="background:#cc0000">Видалити</button> <button onclick="editRoute(${r.id})" style="background:#ff9900">Редагувати</button></div>`).join('');
+            container.innerHTML = routes.map(r => `<div class="route-card"><strong>${r.from}→${r.to}</strong> ${r.time} ${r.price}грн <button onclick="deleteRoute(${r.id})" style="background:#cc0000">🗑 Видалити</button> <button onclick="editRoute(${r.id})" style="background:#ff9900">✏ Редагувати</button></div>`).join('');
         }
+        
         window.addRoute = function() {
             const from=document.getElementById("newFrom").value, to=document.getElementById("newTo").value, time=document.getElementById("newTime").value, price=document.getElementById("newPrice").value;
             if(!from||!to||!time||!price) return Swal.fire('Помилка','Заповніть всі поля','error');
@@ -47,6 +144,7 @@
             localStorage.setItem("railway_routes", JSON.stringify(routes));
             Swal.fire('Успіх','Маршрут додано','success').then(()=>location.reload());
         };
+        
         window.deleteRoute = function(id) {
             Swal.fire({ title: 'Видалити?', text: 'Цю дію не можна скасувати', icon: 'warning', showCancelButton: true }).then(result => {
                 if(result.isConfirmed) {
@@ -57,15 +155,18 @@
                 }
             });
         };
+        
         window.editRoute = function(id) {
             const routes = JSON.parse(localStorage.getItem("railway_routes")||"[]");
             const route = routes.find(r=>r.id===id);
             if(!route) return;
-            Swal.fire({ title: 'Редагувати', html: `<input id="editFrom" value="${route.from}"><input id="editTo" value="${route.to}"><input id="editTime" value="${route.time}"><input id="editPrice" value="${route.price}">`, preConfirm: () => { route.from=document.getElementById('editFrom').value; route.to=document.getElementById('editTo').value; route.time=document.getElementById('editTime').value; route.price=Number(document.getElementById('editPrice').value); localStorage.setItem("railway_routes", JSON.stringify(routes)); location.reload(); } });
+            Swal.fire({ title: 'Редагувати маршрут', html: `<input id="editFrom" class="swal2-input" value="${route.from}" placeholder="Звідки"><input id="editTo" class="swal2-input" value="${route.to}" placeholder="Куди"><input id="editTime" class="swal2-input" value="${route.time}" placeholder="Час"><input id="editPrice" class="swal2-input" value="${route.price}" placeholder="Ціна">`, preConfirm: () => { route.from=document.getElementById('editFrom').value; route.to=document.getElementById('editTo').value; route.time=document.getElementById('editTime').value; route.price=Number(document.getElementById('editPrice').value); localStorage.setItem("railway_routes", JSON.stringify(routes)); Swal.fire('Оновлено!','','success').then(()=>location.reload()); } });
         };
+        
         function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); }
         if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-        showStats(); showAdminRoutes();
+        
+        showAdminInterface();
     </script>
 </body>
 </html>
