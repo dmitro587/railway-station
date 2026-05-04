@@ -2,51 +2,71 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вхід</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <header>
         <h1>🚆 Вхід до системи</h1>
         <nav>
-            <a href="index.html">Головна</a>
-            <a href="news.html">Новини</a>
-            <a href="schedule.html">Розклад</a>
-            <a href="contacts.html">Контакти</a>
-            <a href="login.html">Вхід</a>
-            <a href="register.html">Реєстрація</a>
-            <a href="admin.html">Адмін</a>
+            <a href="index.html">🏠 Головна</a>
+            <a href="news.html">📰 Новини</a>
+            <a href="schedule.html">📅 Розклад</a>
+            <a href="map.html">🗺 Карта</a>
+            <a href="contacts.html">📞 Контакти</a>
+            <a href="login.html">🔐 Вхід</a>
+            <a href="register.html">📝 Реєстрація</a>
+            <a href="profile.html">👤 Кабінет</a>
+            <a href="admin.html">⚙ Адмін</a>
         </nav>
     </header>
     <main>
         <div class="form-container">
             <h2>🔐 Вхід</h2>
-            <form id="loginForm">
-                <input type="email" id="loginEmail" placeholder="Email" required>
-                <input type="password" id="loginPassword" placeholder="Пароль" required>
-                <button type="submit">Увійти</button>
-            </form>
+            <input type="email" id="loginEmail" placeholder="Email" style="width:100%; padding:10px; margin:10px 0">
+            <input type="password" id="loginPassword" placeholder="Пароль" style="width:100%; padding:10px; margin:10px 0">
+            <button onclick="login()" style="width:100%; padding:10px">Увійти</button>
             <p>Немає акаунту? <a href="register.html">Зареєструватися</a></p>
+            <p><a href="forgot-password.html">Забули пароль?</a></p>
         </div>
     </main>
-    <script src="auth.js"></script>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             
+            if(!email || !password) {
+                Swal.fire('Помилка', 'Введіть email та пароль', 'error');
+                return;
+            }
+            
+            // Отримуємо список користувачів
             const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
+            
+            // Шукаємо користувача
             const user = users.find(u => u.email === email && u.password === password);
             
-            if (user) {
+            if(user) {
+                // Зберігаємо поточного користувача
                 localStorage.setItem('current_user', JSON.stringify(user));
-                alert('✅ Вхід виконано!');
-                window.location.href = 'profile.html';
+                Swal.fire('Успіх!', `Вітаємо, ${user.name}!`, 'success').then(() => {
+                    window.location.href = 'index.html';
+                });
             } else {
-                alert('❌ Невірний email або пароль');
+                Swal.fire('Помилка', 'Невірний email або пароль', 'error');
             }
-        });
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
     </script>
 </body>
 </html>
