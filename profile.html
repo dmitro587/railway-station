@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .ticket-card { background: linear-gradient(135deg, var(--card) 0%, var(--card) 100%); border-left: 5px solid #0066cc; margin: 15px 0; }
+        .download-pdf { background: #28a745; margin-top: 10px; }
+        .download-pdf:hover { background: #218838; }
+        body.dark .ticket-card { border-left-color: #e94560; }
+    </style>
 </head>
 <body>
     <header>
@@ -27,9 +34,10 @@
         <div id="profileInfo"></div>
         <h2>📋 Мої квитки</h2>
         <div id="myTickets"></div>
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button onclick="changePassword()" style="background: #ff9900;">🔑 Змінити пароль</button>
-            <button onclick="logout()" style="background: #cc0000;">🚪 Вийти</button>
+            <button onclick="clearAllTickets()" style="background: #cc0000;">🗑 Очистити всі квитки</button>
+            <button onclick="logout()" style="background: #666;">🚪 Вийти</button>
         </div>
     </main>
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
@@ -42,72 +50,120 @@
                 return;
             }
             
+            const totalSpent = (user.tickets || []).reduce((sum, t) => sum + t.price, 0);
+            
             document.getElementById('profileInfo').innerHTML = `
                 <div class="route-card">
                     <h3>Вітаємо, ${user.name}!</h3>
                     <p>📧 ${user.email}</p>
                     <p>🆔 ID: ${user.id}</p>
-                    <p>📅 Дата реєстрації: ${user.createdAt || 'невідома'}</p>
-                    <p>🎫 Всього квитків: ${user.tickets?.length || 0}</p>
+                    <p>📅 Дата реєстрації: ${user.createdAt || new Date(user.id).toLocaleDateString()}</p>
+                    <p>🎫 Всього квитків: <strong>${user.tickets?.length || 0}</strong></p>
+                    <p>💰 Витрачено всього: <strong>${totalSpent} грн</strong></p>
                 </div>
             `;
             
             const ticketsDiv = document.getElementById('myTickets');
             if (user.tickets && user.tickets.length > 0) {
                 ticketsDiv.innerHTML = user.tickets.slice().reverse().map((t, idx) => `
-                    <div class="route-card" id="ticket-${t.id}">
+                    <div class="route-card ticket-card" id="ticket-${t.id}">
                         <strong>${t.from} → ${t.to}</strong><br>
-                        📅 ${t.date} | 🕐 ${t.time} | 💺 Місце: ${t.seat || 'не вибрано'}<br>
+                        📅 ${t.date} | 🕐 ${t.time || '08:00'} | 💺 Місце: ${t.seat || Math.floor(Math.random()*32)+1}<br>
                         💰 ${t.price} грн<br>
                         <div id="qrcode-${t.id}" style="margin-top: 10px;"></div>
-                        <button onclick="downloadTicketPDF(${t.id})">📄 Скачати PDF</button>
+                        <button onclick="downloadTicketPDF(${t.id})" class="download-pdf">📄 Скачати PDF-квиток</button>
                     </div>
                 `).join('');
                 
                 user.tickets.forEach(t => {
                     try {
                         new QRCode(document.getElementById(`qrcode-${t.id}`), {
-                            text: `КВИТОК: ${t.from}→${t.to} ${t.date} ${t.time} Місце:${t.seat || '?'} Ціна:${t.price}грн`,
+                            text: `КВИТОК: ${t.from}→${t.to} ${t.date} ${t.time || '08:00'} Місце:${t.seat || '?'} Ціна:${t.price}грн`,
                             width: 120,
                             height: 120
                         });
                     } catch(e) { console.log('QR error'); }
                 });
             } else {
-                ticketsDiv.innerHTML = '<div class="route-card"><p>У вас ще немає квитків. Перейдіть до <a href="schedule.html">розкладу</a>, щоб купити.</p></div>';
+                ticketsDiv.innerHTML = '<div class="route-card"><p>🎫 У вас ще немає квитків. Перейдіть до <a href="schedule.html">розкладу</a>, щоб купити перший квиток!</p></div>';
             }
         }
         
-        function downloadTicketPDF(ticketId) {
+        // Справжній PDF-квиток
+        window.downloadTicketPDF = function(ticketId) {
             const user = JSON.parse(localStorage.getItem('current_user'));
             const ticket = user.tickets.find(t => t.id === ticketId);
             if(ticket) {
-                Swal.fire({
-                    title: '🎫 Ваш квиток',
-                    html: `
-                        <div style="text-align:center">
-                            <h3>${ticket.from} → ${ticket.to}</h3>
-                            <p>📅 Дата: ${ticket.date}</p>
-                            <p>🕐 Час: ${ticket.time}</p>
-                            <p>💺 Місце: ${ticket.seat}</p>
-                            <p>💰 Ціна: ${ticket.price} грн</p>
-                            <hr>
-                            <p><small>Покажіть цей квиток контролеру</small></p>
+                const element = document.createElement('div');
+                element.innerHTML = `
+                    <div style="font-family: 'Segoe UI', Arial; padding: 20px; max-width: 450px; margin: auto; border: 3px solid #0066cc; border-radius: 15px; background: white; color: #333;">
+                        <div style="text-align: center;">
+                            <h2 style="color: #0066cc; margin: 0;">🚆 ЗАЛІЗНИЧНИЙ КВИТОК</h2>
+                            <p style="color: #666; font-size: 12px;">Електронний квиток</p>
                         </div>
-                    `,
-                    confirmButtonText: 'OK'
-                });
+                        <hr style="border-color: #0066cc;">
+                        <div style="display: flex; justify-content: space-between; margin: 15px 0;">
+                            <div><strong>📅 Дата:</strong><br>${ticket.date}</div>
+                            <div><strong>🕐 Час:</strong><br>${ticket.time || '08:00'}</div>
+                            <div><strong>💺 Місце:</strong><br>${ticket.seat || Math.floor(Math.random()*32)+1}</div>
+                        </div>
+                        <div style="background: #f0f2f5; padding: 15px; border-radius: 10px; text-align: center; margin: 15px 0;">
+                            <strong>${ticket.from}</strong> → <strong>${ticket.to}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                            <div><strong>💰 Ціна:</strong><br>${ticket.price} грн</div>
+                            <div><strong>🎫 ID квитка:</strong><br>${ticket.id}</div>
+                        </div>
+                        <hr>
+                        <p style="text-align: center; font-size: 11px; color: #666;">Пред'явіть цей квиток контролеру<br>Приємної поїздки!</p>
+                    </div>
+                `;
+                html2pdf().from(element).set({ 
+                    margin: 0.5, 
+                    filename: `ticket_${ticket.from}_to_${ticket.to}_${ticket.date}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, letterRendering: true },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                }).save();
+                
+                Swal.fire('✅ Готово!', 'Файл PDF завантажується...', 'success');
             }
-        }
+        };
+        
+        // Очистити всі квитки
+        window.clearAllTickets = function() {
+            Swal.fire({
+                title: 'Очистити всі квитки?',
+                text: 'Цю дію не можна скасувати!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#cc0000',
+                confirmButtonText: 'Так, очистити',
+                cancelButtonText: 'Скасувати'
+            }).then(result => {
+                if(result.isConfirmed) {
+                    const user = JSON.parse(localStorage.getItem('current_user'));
+                    user.tickets = [];
+                    localStorage.setItem('current_user', JSON.stringify(user));
+                    
+                    const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
+                    const idx = users.findIndex(u => u.id === user.id);
+                    if(idx !== -1) users[idx] = user;
+                    localStorage.setItem('railway_users', JSON.stringify(users));
+                    
+                    Swal.fire('✅ Очищено!', 'Всі квитки видалені', 'success').then(() => loadProfile());
+                }
+            });
+        };
         
         function changePassword() {
             const user = JSON.parse(localStorage.getItem('current_user'));
             Swal.fire({
-                title: 'Зміна пароля',
+                title: '🔑 Зміна пароля',
                 html: `
-                    <input type="password" id="oldPass" class="swal2-input" placeholder="Старий пароль">
-                    <input type="password" id="newPass" class="swal2-input" placeholder="Новий пароль">
-                    <input type="password" id="confirmPass" class="swal2-input" placeholder="Підтвердіть новий пароль">
+                    <input type="password" id="oldPass" class="swal2-input" placeholder="Старий пароль" autocomplete="off">
+                    <input type="password" id="newPass" class="swal2-input" placeholder="Новий пароль (мін. 4 символи)" autocomplete="off">
+                    <input type="password" id="confirmPass" class="swal2-input" placeholder="Підтвердіть новий пароль" autocomplete="off">
                 `,
                 preConfirm: () => {
                     const oldPass = document.getElementById('oldPass').value;
@@ -115,26 +171,24 @@
                     const confirmPass = document.getElementById('confirmPass').value;
                     
                     if(oldPass !== user.password) {
-                        Swal.showValidationMessage('Старий пароль невірний');
+                        Swal.showValidationMessage('❌ Старий пароль невірний');
                         return false;
                     }
                     if(newPass.length < 4) {
-                        Swal.showValidationMessage('Новий пароль повинен мати не менше 4 символів');
+                        Swal.showValidationMessage('❌ Новий пароль повинен мати не менше 4 символів');
                         return false;
                     }
                     if(newPass !== confirmPass) {
-                        Swal.showValidationMessage('Нові паролі не співпадають');
+                        Swal.showValidationMessage('❌ Нові паролі не співпадають');
                         return false;
                     }
-                    return { oldPass, newPass };
+                    return newPass;
                 }
             }).then(result => {
                 if(result.isConfirmed) {
-                    // Оновлюємо пароль
-                    user.password = result.value.newPass;
+                    user.password = result.value;
                     localStorage.setItem('current_user', JSON.stringify(user));
                     
-                    // Оновлюємо в списку користувачів
                     const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
                     const idx = users.findIndex(u => u.id === user.id);
                     if(idx !== -1) users[idx] = user;
@@ -146,8 +200,19 @@
         }
         
         function logout() {
-            localStorage.removeItem('current_user');
-            window.location.href = 'index.html';
+            Swal.fire({
+                title: 'Вийти?',
+                text: 'Ви будете перенаправлені на головну сторінку',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Так, вийти',
+                cancelButtonText: 'Скасувати'
+            }).then(result => {
+                if(result.isConfirmed) {
+                    localStorage.removeItem('current_user');
+                    window.location.href = 'index.html';
+                }
+            });
         }
         
         function toggleTheme() {
