@@ -5,3 +5,45 @@ function showPopularRoutes(){const container=document.getElementById("popular-ro
 window.buyTicket=function(routeId){const route=routes.find(r=>r.id===routeId);if(!route)return;const cardNumber=prompt("Введіть номер картки (16 цифр):");if(cardNumber&&cardNumber.length===16){alert(`✅ Квиток куплено! ${route.from} → ${route.to}\nОплачено: ${route.price} грн`)}else if(cardNumber){alert("❌ Невірний номер картки")}};
 window.searchRoutes=function(){const from=document.getElementById("searchFrom")?.value.toLowerCase();const to=document.getElementById("searchTo")?.value.toLowerCase();const resultsDiv=document.getElementById("searchResults");if(!resultsDiv)return;const found=routes.filter(r=>r.from.toLowerCase().includes(from)&&r.to.toLowerCase().includes(to));if(found.length===0){resultsDiv.innerHTML="<p>❌ Маршрутів не знайдено</p>"}else{resultsDiv.innerHTML=found.map(r=>`<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>Час: ${r.time} | Ціна: ${r.price} грн<br><button onclick="buyTicket(${r.id})">Купити</button></div>`).join("")}};
 loadRoutes();showPopularRoutes();
+// ========== РОБОТА З КОРИСТУВАЧАМИ ТА КВИТКАМИ ==========
+window.buyTicketWithAuth = function(routeId) {
+    const user = JSON.parse(localStorage.getItem('current_user'));
+    if (!user) {
+        if (confirm('Для покупки квитка потрібно увійти. Перейти на сторінку входу?')) {
+            window.location.href = 'login.html';
+        }
+        return;
+    }
+    
+    const route = routes.find(r => r.id === routeId);
+    if (!route) return;
+    
+    const cardNumber = prompt("Введіть номер картки (16 цифр):");
+    if (cardNumber && cardNumber.length === 16) {
+        // Зберігаємо квиток у користувача
+        const ticket = {
+            id: Date.now(),
+            from: route.from,
+            to: route.to,
+            time: route.time,
+            price: route.price,
+            date: new Date().toLocaleDateString()
+        };
+        
+        user.tickets = user.tickets || [];
+        user.tickets.push(ticket);
+        
+        // Оновлюємо дані користувача в localStorage
+        const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
+        const userIndex = users.findIndex(u => u.id === user.id);
+        if (userIndex !== -1) {
+            users[userIndex] = user;
+            localStorage.setItem('railway_users', JSON.stringify(users));
+        }
+        localStorage.setItem('current_user', JSON.stringify(user));
+        
+        alert(`✅ Квиток куплено! ${route.from} → ${route.to}\nОплачено: ${route.price} грн\nКвиток збережено в особистому кабінеті`);
+    } else if (cardNumber) {
+        alert("❌ Невірний номер картки");
+    }
+};
