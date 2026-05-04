@@ -2,19 +2,21 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Особистий кабінет</title>
+    <title>Мій кабінет</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>👤 Особистий кабінет</h1>
+        <h1>👤 Мій кабінет</h1>
         <nav>
             <a href="index.html">Головна</a>
             <a href="news.html">Новини</a>
             <a href="schedule.html">Розклад</a>
+            <a href="route.html">Маршрут</a>
             <a href="contacts.html">Контакти</a>
             <a href="login.html">Вхід</a>
             <a href="register.html">Реєстрація</a>
+            <a href="profile.html">Кабінет</a>
             <a href="admin.html">Адмін</a>
         </nav>
     </header>
@@ -22,7 +24,7 @@
         <div id="profileInfo"></div>
         <h2>📋 Мої квитки</h2>
         <div id="myTickets"></div>
-        <button onclick="logout()" style="background:#cc0000">Вийти</button>
+        <button onclick="logout()" style="background:#cc0000; padding:10px 20px; margin-top:20px">Вийти</button>
     </main>
     <script>
         function loadProfile() {
@@ -31,7 +33,6 @@
                 window.location.href = 'login.html';
                 return;
             }
-            
             document.getElementById('profileInfo').innerHTML = `
                 <div class="route-card">
                     <h3>Вітаємо, ${user.name}!</h3>
@@ -39,15 +40,13 @@
                     <p>🆔 ID: ${user.id}</p>
                 </div>
             `;
-            
             const ticketsDiv = document.getElementById('myTickets');
             if (user.tickets && user.tickets.length > 0) {
                 ticketsDiv.innerHTML = user.tickets.map(t => `
                     <div class="route-card">
                         <strong>${t.from} → ${t.to}</strong><br>
-                        Дата: ${t.date || 'сьогодні'} | Час: ${t.time}<br>
-                        Ціна: ${t.price} грн<br>
-                        <button onclick="printTicket(${t.id})">🖨 Роздрукувати</button>
+                        Дата: ${t.date} | Час: ${t.time}<br>
+                        Ціна: ${t.price} грн
                     </div>
                 `).join('');
             } else {
@@ -58,10 +57,6 @@
         window.logout = function() {
             localStorage.removeItem('current_user');
             window.location.href = 'index.html';
-        };
-        
-        window.printTicket = function(ticketId) {
-            alert('Функція друку квитка буде доступна найближчим часом');
         };
         
         loadProfile();
