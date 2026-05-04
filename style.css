@@ -1,1 +1,156 @@
-body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f0f2f5}header{background:#003366;color:#fff;padding:1rem;text-align:center}nav a{color:#fff;margin:0 10px;text-decoration:none}nav a:hover{text-decoration:underline}main{padding:20px;max-width:1200px;margin:0 auto}.route-card{background:#fff;border-radius:10px;padding:15px;margin:10px 0;box-shadow:0 2px 5px rgba(0,0,0,0.1)}button{background:#0066cc;color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer}button:hover{background:#004999}input,select{padding:8px;margin:5px;border:1px solid #ccc;border-radius:5px}.news-item{background:#fff;padding:15px;margin:10px 0;border-radius:10px}table{width:100%;background:#fff;border-collapse:collapse}th,td{padding:10px;border:1px solid #ddd;text-align:left}th{background:#003366;color:#fff}
+/* Базові стилі */
+:root {
+    --bg: #f0f2f5;
+    --card: white;
+    --text: #333;
+    --header: #003366;
+    --header-text: white;
+    --btn: #0066cc;
+    --btn-hover: #004999;
+    --border: #ddd;
+}
+
+body.dark {
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --text: #eee;
+    --header: #0f3460;
+    --header-text: #eee;
+    --btn: #e94560;
+    --btn-hover: #c62a48;
+    --border: #2a2a4a;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.3s ease;
+}
+
+header {
+    background: var(--header);
+    color: var(--header-text);
+    padding: 1rem;
+    text-align: center;
+}
+
+nav a {
+    color: var(--header-text);
+    margin: 0 10px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    text-decoration: underline;
+    transform: scale(1.05);
+}
+
+main {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Картки маршрутів */
+.route-card, .news-item, .review-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.route-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+button {
+    background: var(--btn);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: var(--btn-hover);
+    transform: scale(1.02);
+}
+
+input, select {
+    padding: 8px;
+    margin: 5px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--card);
+    color: var(--text);
+}
+
+table {
+    width: 100%;
+    background: var(--card);
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+}
+
+th {
+    background: var(--header);
+    color: var(--header-text);
+}
+
+/* Сітка місць у вагоні */
+.seat-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.seat {
+    background: #4caf50;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.seat:hover { transform: scale(1.05); }
+.seat.taken { background: #999; cursor: not-allowed; }
+.seat.selected { background: #ff9800; }
+
+/* Кнопка темної теми */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--btn);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+    main { padding: 10px; }
+    nav a { font-size: 12px; margin: 0 5px; }
+    table { font-size: 12px; }
+    .seat-grid { grid-template-columns: repeat(4, 1fr); }
+}
