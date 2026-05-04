@@ -2,9 +2,15 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Розклад поїздів</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#003366">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RailWay">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/96/train.png">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
@@ -48,7 +54,24 @@
         .counter-number { font-size: 20px; font-weight: bold; min-width: 40px; display: inline-block; }
         .qr-result { text-align: center; margin-top: 15px; padding: 15px; background: white; border-radius: 10px; }
         .price-breakdown { background: rgba(0,102,204,0.1); padding: 10px; border-radius: 8px; margin-top: 10px; }
-        @media (max-width: 768px) { th, td { font-size: 12px; padding: 5px; } .search-box { flex-direction: column; } .autocomplete-container { width: 100%; } .counter-btn { width: 30px; height: 30px; } }
+        
+        /* Стилі для графічної схеми вагона */
+        .seat-map { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin: 20px 0; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .seat { background: #4caf50; color: white; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 12px; }
+        .seat:hover { transform: scale(1.05); background: #45a049; }
+        .seat.selected { background: #ff9800; color: white; }
+        .seat.reserved { background: #999; cursor: not-allowed; opacity: 0.6; }
+        .seat-info { text-align: center; margin-top: 10px; font-size: 12px; }
+        
+        /* Стилі для погоди */
+        .weather-widget { background: rgba(0,102,204,0.1); padding: 8px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; margin-left: 10px; }
+        .weather-icon { font-size: 20px; }
+        
+        /* Кнопка сповіщення */
+        .notify-btn { background: #ff9800; color: white; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin-left: 8px; }
+        .notify-btn:hover { background: #e68900; }
+        
+        @media (max-width: 768px) { th, td { font-size: 12px; padding: 5px; } .search-box { flex-direction: column; } .autocomplete-container { width: 100%; } .counter-btn { width: 30px; height: 30px; } .seat-map { grid-template-columns: repeat(4, 1fr); } }
     </style>
 </head>
 <body>
@@ -96,6 +119,7 @@
                         <th>🧒 Дитячий</th>
                         <th>⏱ Тривалість</th>
                         <th>📏 Відстань</th>
+                        <th>🌡 Погода</th>
                         <th>🎫 Дія</th>
                     </tr>
                 </thead>
@@ -176,8 +200,39 @@
             { id: 50, from: "Тернопіль", to: "Київ", time: "10:00", price: 400, duration: "5 год", distance: "420 км" }
         ];
 
+        // Збережені підписки на знижки
+        let priceAlerts = JSON.parse(localStorage.getItem('price_alerts') || '[]');
+
         function saveRoutes() { localStorage.setItem("railway_routes", JSON.stringify(routes)); }
         function loadRoutes() { const saved = localStorage.getItem("railway_routes"); if(saved) routes = JSON.parse(saved); else saveRoutes(); }
+
+        // ========== ФУНКЦІЯ ДЛЯ ПОГОДИ ==========
+        async function getWeather(city) {
+            try {
+                const weatherMap = {
+                    "Київ": "☀️ +22°C", "Львів": "⛅ +18°C", "Одеса": "🌊 +24°C", "Харків": "☁️ +20°C",
+                    "Дніпро": "🌤️ +21°C", "Запоріжжя": "☀️ +23°C", "Вінниця": "🌦️ +17°C", "Житомир": "☁️ +16°C",
+                    "Чернігів": "🌥️ +15°C", "Суми": "☁️ +14°C", "Полтава": "🌤️ +18°C", "Тернопіль": "⛅ +16°C",
+                    "Луцьк": "☁️ +15°C", "Рівне": "🌦️ +14°C", "Хмельницький": "☁️ +16°C", "Чернівці": "☀️ +19°C",
+                    "Ужгород": "☀️ +21°C", "Івано-Франківськ": "🌤️ +17°C", "Миколаїв": "☀️ +22°C", "Херсон": "☀️ +23°C",
+                    "Кропивницький": "🌤️ +18°C", "Кременчук": "☁️ +17°C"
+                };
+                return weatherMap[city] || "🌡️ +15°C";
+            } catch(e) { return "🌡️ n/a"; }
+        }
+
+        // ========== ДОДАВАННЯ ПІДПИСКИ НА ЗНИЖКУ ==========
+        window.subscribeToDiscount = function(routeId) {
+            const route = routes.find(r => r.id === routeId);
+            if(!route) return;
+            if(priceAlerts.includes(routeId)) {
+                Swal.fire('Вже підписано', `Ви вже отримуєте сповіщення про знижки на ${route.from} → ${route.to}`, 'info');
+                return;
+            }
+            priceAlerts.push(routeId);
+            localStorage.setItem('price_alerts', JSON.stringify(priceAlerts));
+            Swal.fire('✅ Підписка оформлена!', `Ми повідомимо вас, коли ціна на ${route.from} → ${route.to} знизиться`, 'success');
+        };
 
         function showAllRoutes() {
             const tbody = document.getElementById("routesList");
@@ -185,7 +240,7 @@
             tbody.innerHTML = routes.map(r => {
                 const childPrice = Math.round(r.price * 0.5);
                 return `
-                    <tr>
+                    <table>
                         <td><strong>${r.from}</strong></td>
                         <td><strong>${r.to}</strong></td>
                         <td>🕐 ${r.time}</td>
@@ -193,11 +248,24 @@
                         <td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td>
                         <td>⏱ ${r.duration}</td>
                         <td>📏 ${r.distance}</td>
-                        <td><button class="buy-btn" onclick="buyTicket(${r.id})">🎫 Купити</button></td>
+                        <td><span class="weather-widget" id="weather-${r.id}">🌡️ завантаження...</span></td>
+                        <td>
+                            <button class="buy-btn" onclick="buyTicket(${r.id})">🎫 Купити</button>
+                            <button class="notify-btn" onclick="subscribeToDiscount(${r.id})">🔔 Стежити</button>
+                        </td>
                     </tr>
                 `;
             }).join('');
             document.getElementById("totalCount").innerText = routes.length;
+            
+            // Завантажуємо погоду для кожного маршруту
+            routes.forEach(async r => {
+                const weatherSpan = document.getElementById(`weather-${r.id}`);
+                if(weatherSpan) {
+                    const weather = await getWeather(r.to);
+                    weatherSpan.innerHTML = weather;
+                }
+            });
         }
 
         function setupAutocomplete(inputId, listId) {
@@ -233,7 +301,7 @@
                 resultsDiv.innerHTML = '<div class="route-card" style="text-align: center;"><p>❌ Маршрутів не знайдено</p><p>Спробуйте інші міста</p></div>';
                 table.style.display = 'none';
             } else {
-                resultsDiv.innerHTML = `<h3>🔍 Знайдено ${found.length} маршрут(ів):</h3>${found.map(r => { const childPrice = Math.round(r.price * 0.5); return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 Дорослий: ${r.price} грн | 🧒 Дитячий: ${childPrice} грн (-50%)<br><button onclick="buyTicket(${r.id})">🎫 Купити квиток</button></div>`; }).join('')}`;
+                resultsDiv.innerHTML = `<h3>🔍 Знайдено ${found.length} маршрут(ів):</h3>${found.map(r => { const childPrice = Math.round(r.price * 0.5); return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 Дорослий: ${r.price} грн | 🧒 Дитячий: ${childPrice} грн (-50%)<br><button onclick="buyTicket(${r.id})">🎫 Купити квиток</button> <button class="notify-btn" onclick="subscribeToDiscount(${r.id})">🔔 Стежити</button></div>`; }).join('')}`;
                 table.style.display = 'none';
             }
         };
@@ -247,6 +315,7 @@
         };
 
         let adultCount = 1, childCount = 0, currentRoute = null;
+        let selectedSeats = [];
         
         function updateCounters() {
             document.getElementById('adultCountDisplay').innerText = adultCount;
@@ -268,7 +337,38 @@
             updateCounters();
         };
 
-        // Функція для генерації QR-коду
+        // ========== ГРАФІЧНА СХЕМА ВАГОНА ==========
+        window.selectSeat = function(seatNum) {
+            if(selectedSeats.includes(seatNum)) {
+                selectedSeats = selectedSeats.filter(s => s !== seatNum);
+                document.getElementById(`seat-${seatNum}`).classList.remove('selected');
+            } else {
+                if(selectedSeats.length < (adultCount + childCount)) {
+                    selectedSeats.push(seatNum);
+                    document.getElementById(`seat-${seatNum}`).classList.add('selected');
+                } else {
+                    Swal.fire('Увага', `Ви вже вибрали ${selectedSeats.length} місць. Вам потрібно вибрати ${adultCount + childCount} місць`, 'warning');
+                }
+            }
+        };
+
+        function renderSeatMap() {
+            const totalSeats = 32;
+            let html = '<div class="seat-map">';
+            for(let i = 1; i <= totalSeats; i++) {
+                const isSelected = selectedSeats.includes(i);
+                html += `<div class="seat ${isSelected ? 'selected' : ''}" id="seat-${i}" onclick="selectSeat(${i})">${i}</div>`;
+            }
+            html += '</div><div class="seat-info">💡 Клікніть на місце, щоб вибрати. Вибрано: <span id="selectedCount">0</span>/<span id="totalNeeded">0</span></div>';
+            return html;
+        }
+
+        function updateSeatDisplay() {
+            const needed = adultCount + childCount;
+            document.getElementById('selectedCount').innerText = selectedSeats.length;
+            document.getElementById('totalNeeded').innerText = needed;
+        }
+
         function generateQRCode(data, elementId) {
             const element = document.getElementById(elementId);
             if(element) {
@@ -282,6 +382,32 @@
                     correctLevel: QRCode.CorrectLevel.H
                 });
             }
+        }
+
+        // ========== ДЕМО-EMAIL ==========
+        function showEmailDemo(ticket, totalPrice, seats) {
+            Swal.fire({
+                title: '📧 Лист надіслано!',
+                html: `
+                    <div style="text-align: left;">
+                        <div style="background: #f0f2f5; padding: 15px; border-radius: 10px;">
+                            <p><strong>Кому:</strong> ${JSON.parse(localStorage.getItem('current_user'))?.email || 'user@example.com'}</p>
+                            <p><strong>Тема:</strong> Ваш квиток на потяг ${ticket.from} → ${ticket.to}</p>
+                            <hr>
+                            <p>✅ Ваш квиток успішно придбано!</p>
+                            <p><strong>Маршрут:</strong> ${ticket.from} → ${ticket.to}</p>
+                            <p><strong>Дата:</strong> ${ticket.date}</p>
+                            <p><strong>Час:</strong> ${ticket.time}</p>
+                            <p><strong>Місця:</strong> ${seats.join(', ')}</p>
+                            <p><strong>Сума:</strong> ${totalPrice} грн</p>
+                            <hr>
+                            <p style="font-size: 12px; color: #666;">Це демонстраційний лист. У реальному сервісі квиток надійде на вашу пошту.</p>
+                        </div>
+                    </div>
+                `,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
         }
 
         window.buyTicket = function(routeId) {
@@ -305,6 +431,7 @@
             
             adultCount = 1;
             childCount = 0;
+            selectedSeats = [];
             const childPrice = Math.round(currentRoute.price * 0.5);
             
             Swal.fire({
@@ -343,7 +470,6 @@
                 cancelButtonText: 'Скасувати',
                 didOpen: () => {
                     updateCounters();
-                    // Стежимо за змінами
                     const observer = setInterval(() => {
                         document.getElementById('adultCountDisplay2').innerText = adultCount;
                         document.getElementById('childCountDisplay2').innerText = childCount;
@@ -356,27 +482,22 @@
                 if(result.isConfirmed) {
                     const totalPassengers = adultCount + childCount;
                     Swal.fire({
-                        title: '💺 Виберіть місця',
-                        html: `
-                            <p>Всього пасажирів: <strong>${totalPassengers}</strong></p>
-                            <p>Введіть номери місць через кому (1-32)</p>
-                            <input type="text" id="seatsInput" class="swal2-input" placeholder="наприклад: 5, 12, 18">
-                            <div style="margin-top: 10px; font-size: 12px; color: #666;">💡 Вільні місця: 1-32</div>
-                        `,
-                        preConfirm: () => {
-                            const seats = document.getElementById('seatsInput').value.split(',').map(s => parseInt(s.trim()));
-                            if(seats.length !== totalPassengers) { 
-                                Swal.showValidationMessage(`❌ Виберіть ${totalPassengers} місць`); 
-                                return false; 
-                            }
-                            if(seats.some(s => isNaN(s) || s < 1 || s > 32)) { 
-                                Swal.showValidationMessage('❌ Місця мають бути від 1 до 32'); 
-                                return false; 
-                            }
-                            return seats;
+                        title: '💺 Виберіть місця у вагоні',
+                        html: renderSeatMap(),
+                        showCancelButton: true,
+                        confirmButtonText: 'Підтвердити вибір місць',
+                        cancelButtonText: 'Назад',
+                        didOpen: () => {
+                            updateSeatDisplay();
+                            const needed = adultCount + childCount;
+                            document.getElementById('totalNeeded').innerText = needed;
                         }
                     }).then(seatResult => {
                         if(seatResult.isConfirmed) {
+                            if(selectedSeats.length !== (adultCount + childCount)) {
+                                Swal.fire('Помилка', `Виберіть ${adultCount + childCount} місць (вибрано ${selectedSeats.length})`, 'error');
+                                return;
+                            }
                             const totalPrice = adultCount * currentRoute.price + childCount * childPrice;
                             Swal.fire({
                                 title: '💳 Оплата',
@@ -409,7 +530,7 @@
                                         time: currentRoute.time,
                                         price: totalPrice,
                                         date: new Date().toLocaleDateString(),
-                                        seats: seatResult.value,
+                                        seats: selectedSeats,
                                         adultCount: adultCount,
                                         childCount: childCount,
                                         duration: currentRoute.duration,
@@ -428,8 +549,7 @@
                                     stats.push({ routeId, from: currentRoute.from, to: currentRoute.to, price: totalPrice, date: new Date().toLocaleDateString() });
                                     localStorage.setItem('ticket_stats', JSON.stringify(stats));
                                     
-                                    // Дані для QR-коду
-                                    const qrData = `🚆 КВИТОК #${ticketId}\n${currentRoute.from} → ${currentRoute.to}\n📅 ${new Date().toLocaleDateString()} 🕐 ${currentRoute.time}\n👨 Дорослих: ${adultCount} 🧒 Дітей: ${childCount}\n💺 Місця: ${seatResult.value.join(', ')}\n💰 Сума: ${totalPrice} грн`;
+                                    const qrData = `🚆 КВИТОК #${ticketId}\n${currentRoute.from} → ${currentRoute.to}\n📅 ${new Date().toLocaleDateString()} 🕐 ${currentRoute.time}\n👨 Дорослих: ${adultCount} 🧒 Дітей: ${childCount}\n💺 Місця: ${selectedSeats.join(', ')}\n💰 Сума: ${totalPrice} грн`;
                                     
                                     Swal.fire({
                                         title: '✅ Квиток успішно куплено!',
@@ -440,17 +560,21 @@
                                                 </div>
                                                 <p>📅 ${new Date().toLocaleDateString()} | 🕐 ${currentRoute.time}</p>
                                                 <p>👨 Дорослих: ${adultCount} | 🧒 Дітей: ${childCount}</p>
-                                                <p>💺 Місця: ${seatResult.value.join(', ')}</p>
+                                                <p>💺 Місця: ${selectedSeats.join(', ')}</p>
                                                 <p>💰 Сума: <strong>${totalPrice} грн</strong></p>
                                                 <div id="qrCodeResult" style="margin-top: 15px; display: flex; justify-content: center;"></div>
                                                 <p style="font-size: 11px; margin-top: 10px; color: #666;">🎫 Покажіть цей QR-код контролеру</p>
                                                 <hr>
-                                                <p style="font-size: 12px;">✅ Квиток збережено в <a href="profile.html" style="color: #0066cc;">особистому кабінеті</a></p>
+                                                <button onclick="showEmailDemo(${JSON.stringify(ticket).replace(/"/g, '&quot;')}, ${totalPrice}, ${JSON.stringify(selectedSeats).replace(/"/g, '&quot;')})" style="background: #28a745; margin-top: 10px;">📧 Отримати квиток на email</button>
+                                                <p style="font-size: 12px; margin-top: 10px;">✅ Квиток збережено в <a href="profile.html" style="color: #0066cc;">особистому кабінеті</a></p>
                                             </div>
                                         `,
                                         confirmButtonText: '✅ OK',
                                         didOpen: () => {
                                             generateQRCode(qrData, 'qrCodeResult');
+                                            window.showEmailDemo = function(t, p, s) {
+                                                showEmailDemo(t, p, s);
+                                            };
                                         }
                                     });
                                 }
