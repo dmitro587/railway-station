@@ -597,5 +597,92 @@
         showInternationalRoutes();
         initNewFeatures();
     </script>
+<script>
+// ========== ВИПРАВЛЕННЯ ФУНКЦІЇ ПОКУПКИ ==========
+// Переконуємось, що оригінальна функція збережена
+if(typeof originalBuyTicket === 'undefined') {
+    // Зберігаємо оригінальну функцію якщо вона ще не збережена
+    window.originalBuyTicket = window.buyTicket;
+}
+
+// Повністю перевизначаємо функцію покупки
+window.buyTicket = function(routeId, isInternational) {
+    // Перевірка авторизації
+    const user = JSON.parse(localStorage.getItem('current_user'));
+    if(!user) {
+        Swal.fire({ 
+            title: 'Потрібно увійти', 
+            text: 'Перейти на сторінку входу?', 
+            icon: 'question', 
+            showCancelButton: true,
+            confirmButtonText: 'Так, увійти',
+            cancelButtonText: 'Скасувати'
+        }).then(result => {
+            if(result.isConfirmed) window.location.href = 'login.html';
+        });
+        return;
+    }
+    
+    // Перевірка дати
+    if(!selectedDate) {
+        Swal.fire('⚠️ Виберіть дату', 'Будь ласка, оберіть дату поїздки', 'warning');
+        return;
+    }
+    
+    // Отримуємо маршрут
+    let route;
+    if(isInternational) {
+        route = window.internationalRoutes ? window.internationalRoutes.find(r => r.id === routeId) : null;
+    } else {
+        route = window.routes ? window.routes.find(r => r.id === routeId) : null;
+    }
+    
+    if(!route) {
+        // Спроба отримати з глобальних змінних
+        if(typeof routes !== 'undefined') route = routes.find(r => r.id === routeId);
+        if(!route && typeof internationalRoutes !== 'undefined') route = internationalRoutes.find(r => r.id === routeId);
+        if(!route) {
+            Swal.fire('Помилка', 'Маршрут не знайдено', 'error');
+            return;
+        }
+    }
+    
+    // Застосовуємо промокод
+    let finalPrice = route.price;
+    let discountApplied = 0;
+    const promo = JSON.parse(localStorage.getItem('active_promo') || 'null');
+    if(promo) {
+        discountApplied = promo.discount;
+        finalPrice = Math.round(route.price * (100 - discountApplied) / 100);
+    }
+    
+    // Показуємо діалог покупки
+    Swal.fire({
+        title: `🎫 Квиток ${route.from} → ${route.to}`,
+        html: `
+            <div style="text-align: center;">
+                <p>💰 Ціна: <strong>${finalPrice} грн</strong> ${discountApplied > 0 ? `<span style="color:#ff9800;">(знижка ${discountApplied}%)</span>` : ''}</p>
+                <p>📅 Дата: <strong>${selectedDate}</strong></p>
+                <p>⏰ Час відправлення: <strong>${route.time}</strong></p>
+                <hr>
+                <div style="margin: 10px 0;">
+                    <label>👨 Кількість дорослих:</label>
+                    <div>
+                        <button type="button" id="adultMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
+                        <span id="adultCount" style="font-size:20px; margin:0 15px;">1</span>
+                        <button type="button" id="adultPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
+                    </div>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>🧒 Кількість дітей (до 12 років):</label>
+                    <div>
+                        <button type="button" id="childMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
+                        <span id="childCount" style="font-size:20px; margin:0 15px;">0</span>
+                        <button type="button" id="childPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
+                    </div>
+                </div>
+                <hr>
+                <div id="priceBreakdown" style="background:rgba(0,102,204,0.1); padding:10px; border-radius:8px;">
+                    💰 Дорослі: 1 × ${finalPrice
 </body>
 </html>
