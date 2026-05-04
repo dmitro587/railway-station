@@ -6,6 +6,7 @@
     <title>Розклад поїздів</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         .autocomplete-container { position: relative; flex: 1; }
         .autocomplete-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
@@ -39,11 +40,15 @@
         th, td { padding: 10px; border: 1px solid var(--border); text-align: left; }
         th { background: var(--header); color: white; }
         .child-badge { background: #ffc107; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px; }
-        .counter-btn { width: 30px; height: 30px; border-radius: 50%; font-size: 18px; cursor: pointer; border: none; margin: 0 10px; }
+        .counter-btn { width: 35px; height: 35px; border-radius: 50%; font-size: 18px; cursor: pointer; border: none; margin: 0 10px; }
         .counter-btn.minus { background: #ff4444; color: white; }
+        .counter-btn.minus:hover { background: #cc0000; }
         .counter-btn.plus { background: #44aa44; color: white; }
+        .counter-btn.plus:hover { background: #228822; }
         .counter-number { font-size: 20px; font-weight: bold; min-width: 40px; display: inline-block; }
-        @media (max-width: 768px) { th, td { font-size: 12px; padding: 5px; } .search-box { flex-direction: column; } .autocomplete-container { width: 100%; } }
+        .qr-result { text-align: center; margin-top: 15px; padding: 15px; background: white; border-radius: 10px; }
+        .price-breakdown { background: rgba(0,102,204,0.1); padding: 10px; border-radius: 8px; margin-top: 10px; }
+        @media (max-width: 768px) { th, td { font-size: 12px; padding: 5px; } .search-box { flex-direction: column; } .autocomplete-container { width: 100%; } .counter-btn { width: 30px; height: 30px; } }
     </style>
 </head>
 <body>
@@ -171,11 +176,9 @@
             { id: 50, from: "Тернопіль", to: "Київ", time: "10:00", price: 400, duration: "5 год", distance: "420 км" }
         ];
 
-        // ========== ЗБЕРЕЖЕННЯ ТА ЗАВАНТАЖЕННЯ ==========
         function saveRoutes() { localStorage.setItem("railway_routes", JSON.stringify(routes)); }
         function loadRoutes() { const saved = localStorage.getItem("railway_routes"); if(saved) routes = JSON.parse(saved); else saveRoutes(); }
 
-        // ========== ПОКАЗ ВСІХ МАРШРУТІВ (з дитячою ціною) ==========
         function showAllRoutes() {
             const tbody = document.getElementById("routesList");
             if(!tbody) return;
@@ -188,8 +191,8 @@
                         <td>🕐 ${r.time}</td>
                         <td>💰 ${r.price} грн</td>
                         <td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td>
-                        <td>⏱ ${r.duration || '3 год'}</td>
-                        <td>📏 ${r.distance || '---'}</td>
+                        <td>⏱ ${r.duration}</td>
+                        <td>📏 ${r.distance}</td>
                         <td><button class="buy-btn" onclick="buyTicket(${r.id})">🎫 Купити</button></td>
                     </tr>
                 `;
@@ -197,29 +200,19 @@
             document.getElementById("totalCount").innerText = routes.length;
         }
 
-        // ========== АВТОДОПОВНЕННЯ ==========
         function setupAutocomplete(inputId, listId) {
             const input = document.getElementById(inputId);
             const list = document.getElementById(listId);
-            
             input.addEventListener('input', function() {
                 const value = this.value.toLowerCase();
-                if(value.length < 1) {
-                    list.style.display = 'none';
-                    return;
-                }
+                if(value.length < 1) { list.style.display = 'none'; return; }
                 const filtered = allStations.filter(s => s.toLowerCase().includes(value));
                 if(filtered.length > 0) {
                     list.innerHTML = filtered.map(s => `<div class="autocomplete-item" onclick="selectStation('${inputId}', '${s}')">${s}</div>`).join('');
                     list.style.display = 'block';
-                } else {
-                    list.style.display = 'none';
-                }
+                } else { list.style.display = 'none'; }
             });
-            
-            input.addEventListener('blur', function() {
-                setTimeout(() => list.style.display = 'none', 200);
-            });
+            input.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 200));
         }
         
         window.selectStation = function(inputId, station) {
@@ -227,46 +220,24 @@
             document.getElementById(inputId === 'searchFrom' ? 'fromAutocomplete' : 'toAutocomplete').style.display = 'none';
         };
 
-        // ========== ПОШУК МАРШРУТІВ ==========
         window.searchRoutes = function() {
             const from = document.getElementById("searchFrom")?.value.toLowerCase().trim();
             const to = document.getElementById("searchTo")?.value.toLowerCase().trim();
             const resultsDiv = document.getElementById("searchResults");
             const table = document.getElementById("routesTable");
-            
-            if(!from && !to) {
-                resultsDiv.innerHTML = '';
-                table.style.display = 'table';
-                showAllRoutes();
-                return;
-            }
-            
+            if(!from && !to) { resultsDiv.innerHTML = ''; table.style.display = 'table'; showAllRoutes(); return; }
             let found = routes;
             if(from) found = found.filter(r => r.from.toLowerCase().includes(from));
             if(to) found = found.filter(r => r.to.toLowerCase().includes(to));
-            
             if(found.length === 0) {
-                resultsDiv.innerHTML = '<div class="route-card" style="text-align: center;"><p>❌ Маршрутів не знайдено</p><p>Спробуйте змінити параметри пошуку</p></div>';
+                resultsDiv.innerHTML = '<div class="route-card" style="text-align: center;"><p>❌ Маршрутів не знайдено</p><p>Спробуйте інші міста</p></div>';
                 table.style.display = 'none';
             } else {
-                resultsDiv.innerHTML = `
-                    <h3>🔍 Знайдено ${found.length} маршрут(ів):</h3>
-                    ${found.map(r => {
-                        const childPrice = Math.round(r.price * 0.5);
-                        return `
-                        <div class="route-card">
-                            <strong>${r.from} → ${r.to}</strong><br>
-                            🕐 ${r.time} | 💰 Дорослий: ${r.price} грн | 🧒 Дитячий: ${childPrice} грн (-50%)<br>
-                            ⏱ ${r.duration || '3 год'} | 📏 ${r.distance || '---'}<br>
-                            <button onclick="buyTicket(${r.id})">🎫 Купити квиток</button>
-                        </div>
-                    `}).join('')}
-                `;
+                resultsDiv.innerHTML = `<h3>🔍 Знайдено ${found.length} маршрут(ів):</h3>${found.map(r => { const childPrice = Math.round(r.price * 0.5); return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 Дорослий: ${r.price} грн | 🧒 Дитячий: ${childPrice} грн (-50%)<br><button onclick="buyTicket(${r.id})">🎫 Купити квиток</button></div>`; }).join('')}`;
                 table.style.display = 'none';
             }
         };
 
-        // ========== ОЧИСТИТИ ПОШУК ==========
         window.clearSearch = function() {
             document.getElementById("searchFrom").value = '';
             document.getElementById("searchTo").value = '';
@@ -275,16 +246,14 @@
             showAllRoutes();
         };
 
-        // Змінні для вибору кількості квитків
-        let adultCount = 1;
-        let childCount = 0;
-        let currentRoute = null;
+        let adultCount = 1, childCount = 0, currentRoute = null;
         
         function updateCounters() {
             document.getElementById('adultCountDisplay').innerText = adultCount;
             document.getElementById('childCountDisplay').innerText = childCount;
             const total = (adultCount * currentRoute.price) + (childCount * Math.round(currentRoute.price * 0.5));
             document.getElementById('totalPrice').innerText = total;
+            document.getElementById('totalPriceDisplay').innerText = total;
         }
         
         window.changeAdultCount = function(delta) {
@@ -299,14 +268,29 @@
             updateCounters();
         };
 
-        // ========== ПОКУПКА КВИТКА (з дитячими цінами) ==========
+        // Функція для генерації QR-коду
+        function generateQRCode(data, elementId) {
+            const element = document.getElementById(elementId);
+            if(element) {
+                element.innerHTML = '';
+                new QRCode(element, {
+                    text: data,
+                    width: 150,
+                    height: 150,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+        }
+
         window.buyTicket = function(routeId) {
             const user = JSON.parse(localStorage.getItem('current_user'));
             if(!user) {
-                Swal.fire({
-                    title: 'Потрібно увійти',
-                    text: 'Перейти на сторінку входу?',
-                    icon: 'question',
+                Swal.fire({ 
+                    title: 'Потрібно увійти', 
+                    text: 'Перейти на сторінку входу?', 
+                    icon: 'question', 
                     showCancelButton: true,
                     confirmButtonText: 'Так, увійти',
                     cancelButtonText: 'Скасувати'
@@ -326,13 +310,13 @@
             Swal.fire({
                 title: `🎫 Квиток ${currentRoute.from} → ${currentRoute.to}`,
                 html: `
-                    <div>
+                    <div style="text-align: center;">
                         <p><strong>💰 Дорослий квиток:</strong> ${currentRoute.price} грн</p>
                         <p><strong>🧒 Дитячий квиток (до 12 років):</strong> ${childPrice} грн <span style="color:#ffc107;">(50% знижка)</span></p>
                         <hr>
                         <div style="margin: 15px 0;">
                             <label>👨 Кількість дорослих:</label>
-                            <div>
+                            <div style="display: flex; align-items: center; justify-content: center;">
                                 <button type="button" class="counter-btn minus" onclick="changeAdultCount(-1)">-</button>
                                 <span id="adultCountDisplay" class="counter-number">1</span>
                                 <button type="button" class="counter-btn plus" onclick="changeAdultCount(1)">+</button>
@@ -340,15 +324,17 @@
                         </div>
                         <div style="margin: 15px 0;">
                             <label>🧒 Кількість дітей (до 12 років):</label>
-                            <div>
+                            <div style="display: flex; align-items: center; justify-content: center;">
                                 <button type="button" class="counter-btn minus" onclick="changeChildCount(-1)">-</button>
                                 <span id="childCountDisplay" class="counter-number">0</span>
                                 <button type="button" class="counter-btn plus" onclick="changeChildCount(1)">+</button>
                             </div>
                         </div>
                         <hr>
-                        <div style="font-size: 18px; font-weight: bold;">
-                            💰 Загальна сума: <span id="totalPrice">${currentRoute.price}</span> грн
+                        <div class="price-breakdown">
+                            💰 Дорослі: <span id="adultCountDisplay2">1</span> × ${currentRoute.price} = <span id="adultTotal">${currentRoute.price}</span> грн<br>
+                            🧒 Діти: <span id="childCountDisplay2">0</span> × ${childPrice} = <span id="childTotal">0</span> грн<br>
+                            <strong>💰 Загальна сума: <span id="totalPriceDisplay">${currentRoute.price}</span> грн</strong>
                         </div>
                     </div>
                 `,
@@ -357,45 +343,67 @@
                 cancelButtonText: 'Скасувати',
                 didOpen: () => {
                     updateCounters();
+                    // Стежимо за змінами
+                    const observer = setInterval(() => {
+                        document.getElementById('adultCountDisplay2').innerText = adultCount;
+                        document.getElementById('childCountDisplay2').innerText = childCount;
+                        document.getElementById('adultTotal').innerText = adultCount * currentRoute.price;
+                        document.getElementById('childTotal').innerText = childCount * childPrice;
+                    }, 100);
+                    setTimeout(() => clearInterval(observer), 5000);
                 }
             }).then(result => {
                 if(result.isConfirmed) {
-                    // Вибір місць
                     const totalPassengers = adultCount + childCount;
                     Swal.fire({
-                        title: 'Виберіть місця',
+                        title: '💺 Виберіть місця',
                         html: `
                             <p>Всього пасажирів: <strong>${totalPassengers}</strong></p>
                             <p>Введіть номери місць через кому (1-32)</p>
                             <input type="text" id="seatsInput" class="swal2-input" placeholder="наприклад: 5, 12, 18">
+                            <div style="margin-top: 10px; font-size: 12px; color: #666;">💡 Вільні місця: 1-32</div>
                         `,
                         preConfirm: () => {
                             const seats = document.getElementById('seatsInput').value.split(',').map(s => parseInt(s.trim()));
-                            if(seats.length !== totalPassengers) {
-                                Swal.showValidationMessage(`Виберіть ${totalPassengers} місць`);
-                                return false;
+                            if(seats.length !== totalPassengers) { 
+                                Swal.showValidationMessage(`❌ Виберіть ${totalPassengers} місць`); 
+                                return false; 
                             }
-                            if(seats.some(s => isNaN(s) || s < 1 || s > 32)) {
-                                Swal.showValidationMessage('Місця мають бути від 1 до 32');
-                                return false;
+                            if(seats.some(s => isNaN(s) || s < 1 || s > 32)) { 
+                                Swal.showValidationMessage('❌ Місця мають бути від 1 до 32'); 
+                                return false; 
                             }
                             return seats;
                         }
                     }).then(seatResult => {
                         if(seatResult.isConfirmed) {
-                            // Оплата
+                            const totalPrice = adultCount * currentRoute.price + childCount * childPrice;
                             Swal.fire({
-                                title: 'Оплата',
-                                text: `Сума: ${adultCount * currentRoute.price + childCount * childPrice} грн\nВведіть 16 цифр картки`,
+                                title: '💳 Оплата',
+                                html: `
+                                    <p><strong>До сплати: ${totalPrice} грн</strong></p>
+                                    <p>Введіть 16 цифр картки для оплати</p>
+                                    <input type="text" id="cardInput" class="swal2-input" placeholder="1234 5678 9012 3456" maxlength="19">
+                                    <div style="margin-top: 10px; font-size: 12px; color: #666;">💳 Тестова картка: 4111 1111 1111 1111</div>
+                                `,
                                 input: 'text',
                                 inputPlaceholder: '1234 5678 9012 3456',
                                 showCancelButton: true,
-                                confirmButtonText: 'Сплатити'
+                                confirmButtonText: '💳 Сплатити',
+                                cancelButtonText: 'Скасувати',
+                                preConfirm: () => {
+                                    const card = document.getElementById('cardInput')?.value.replace(/\s/g, '');
+                                    if(!card || card.length < 16) {
+                                        Swal.showValidationMessage('❌ Введіть 16 цифр картки');
+                                        return false;
+                                    }
+                                    return card;
+                                }
                             }).then(payResult => {
-                                if(payResult.isConfirmed && payResult.value && payResult.value.replace(/\s/g, '').length >= 16) {
-                                    const totalPrice = adultCount * currentRoute.price + childCount * childPrice;
+                                if(payResult.isConfirmed) {
+                                    const ticketId = Date.now();
                                     const ticket = {
-                                        id: Date.now(),
+                                        id: ticketId,
                                         from: currentRoute.from,
                                         to: currentRoute.to,
                                         time: currentRoute.time,
@@ -404,12 +412,12 @@
                                         seats: seatResult.value,
                                         adultCount: adultCount,
                                         childCount: childCount,
-                                        duration: currentRoute.duration
+                                        duration: currentRoute.duration,
+                                        distance: currentRoute.distance
                                     };
                                     
                                     user.tickets = user.tickets || [];
                                     user.tickets.push(ticket);
-                                    
                                     const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
                                     const idx = users.findIndex(u => u.id === user.id);
                                     if(idx !== -1) users[idx] = user;
@@ -420,9 +428,31 @@
                                     stats.push({ routeId, from: currentRoute.from, to: currentRoute.to, price: totalPrice, date: new Date().toLocaleDateString() });
                                     localStorage.setItem('ticket_stats', JSON.stringify(stats));
                                     
-                                    Swal.fire('✅ Успіх!', `Квиток(и) куплено!\n${currentRoute.from} → ${currentRoute.to}\nДорослих: ${adultCount}\nДітей: ${childCount}\nМісця: ${seatResult.value.join(', ')}\nСума: ${totalPrice} грн`, 'success');
-                                } else if(payResult.isConfirmed) {
-                                    Swal.fire('❌ Помилка', 'Невірний номер картки', 'error');
+                                    // Дані для QR-коду
+                                    const qrData = `🚆 КВИТОК #${ticketId}\n${currentRoute.from} → ${currentRoute.to}\n📅 ${new Date().toLocaleDateString()} 🕐 ${currentRoute.time}\n👨 Дорослих: ${adultCount} 🧒 Дітей: ${childCount}\n💺 Місця: ${seatResult.value.join(', ')}\n💰 Сума: ${totalPrice} грн`;
+                                    
+                                    Swal.fire({
+                                        title: '✅ Квиток успішно куплено!',
+                                        html: `
+                                            <div style="text-align: center;">
+                                                <div style="background: linear-gradient(135deg, #0066cc, #004999); color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px;">
+                                                    <strong>${currentRoute.from} → ${currentRoute.to}</strong>
+                                                </div>
+                                                <p>📅 ${new Date().toLocaleDateString()} | 🕐 ${currentRoute.time}</p>
+                                                <p>👨 Дорослих: ${adultCount} | 🧒 Дітей: ${childCount}</p>
+                                                <p>💺 Місця: ${seatResult.value.join(', ')}</p>
+                                                <p>💰 Сума: <strong>${totalPrice} грн</strong></p>
+                                                <div id="qrCodeResult" style="margin-top: 15px; display: flex; justify-content: center;"></div>
+                                                <p style="font-size: 11px; margin-top: 10px; color: #666;">🎫 Покажіть цей QR-код контролеру</p>
+                                                <hr>
+                                                <p style="font-size: 12px;">✅ Квиток збережено в <a href="profile.html" style="color: #0066cc;">особистому кабінеті</a></p>
+                                            </div>
+                                        `,
+                                        confirmButtonText: '✅ OK',
+                                        didOpen: () => {
+                                            generateQRCode(qrData, 'qrCodeResult');
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -431,7 +461,6 @@
             });
         };
 
-        // ========== ТЕМНА ТЕМА ==========
         function toggleTheme() {
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
@@ -439,7 +468,6 @@
         
         if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         
-        // ========== ПЕРЕВІРКА ЗБЕРЕЖЕНОГО ПОШУКУ ==========
         const savedFrom = localStorage.getItem('search_from');
         const savedTo = localStorage.getItem('search_to');
         if(savedFrom && savedTo) {
@@ -450,7 +478,6 @@
             localStorage.removeItem('search_to');
         }
         
-        // ========== ІНІЦІАЛІЗАЦІЯ ==========
         setupAutocomplete('searchFrom', 'fromAutocomplete');
         setupAutocomplete('searchTo', 'toAutocomplete');
         loadRoutes();
