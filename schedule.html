@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Розклад поїздів</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#003366">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,9 +13,66 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
-        /* ========== ВСІ ВАШІ СТИЛІ (ЗАЛИШТЕ ЯК Є) ========== */
+        /* ========== БАЗОВІ СТИЛІ ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        body.dark {
+            background: #1a1a2e;
+            color: #eee;
+        }
+        :root {
+            --bg: #f0f2f5;
+            --card: white;
+            --text: #333;
+            --border: #ddd;
+            --btn: #0066cc;
+            --header: #003366;
+        }
+        body.dark {
+            --bg: #1a1a2e;
+            --card: #16213e;
+            --text: #eee;
+            --border: #2c3e50;
+            --btn: #0f3460;
+            --header: #0f3460;
+        }
+        body { background: var(--bg); color: var(--text); }
+        
+        header {
+            background: var(--header);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        header h1 { margin-bottom: 10px; }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        nav a:hover { background: rgba(255,255,255,0.2); }
+        
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
         .autocomplete-container { position: relative; flex: 1; }
-        .autocomplete-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        .autocomplete-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 16px; }
         .autocomplete-list {
             position: absolute;
             top: 100%;
@@ -38,71 +94,91 @@
             border-bottom: 1px solid var(--border);
         }
         .autocomplete-item:hover { background: var(--btn); color: white; }
-        .autocomplete-item:last-child { border-bottom: none; }
         .search-box { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; align-items: center; }
-        .search-box button { padding: 10px 20px; }
-        .buy-btn { background: #0066cc; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .search-box button { padding: 12px 20px; background: var(--btn); color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .search-box button:hover { opacity: 0.8; }
+        
+        .buy-btn { background: #0066cc; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin: 3px; }
         .buy-btn:hover { background: #004999; }
         .international-badge { background: linear-gradient(135deg, #1a472a, #2e7d32); color: white; padding: 2px 8px; border-radius: 15px; font-size: 10px; margin-left: 5px; }
-        table { width: 100%; border-collapse: collapse; background: var(--card); margin-bottom: 30px; }
-        th, td { padding: 10px; border: 1px solid var(--border); text-align: left; }
+        
+        table { width: 100%; border-collapse: collapse; background: var(--card); margin-bottom: 30px; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; border: 1px solid var(--border); text-align: left; }
         th { background: var(--header); color: white; }
+        
         .section-title { margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 3px solid #0066cc; display: flex; align-items: center; gap: 10px; }
-        .section-title i { font-size: 24px; }
         .child-badge { background: #ffc107; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px; }
-        .counter-btn { width: 35px; height: 35px; border-radius: 50%; font-size: 18px; cursor: pointer; border: none; margin: 0 10px; }
-        .counter-btn.minus { background: #ff4444; color: white; }
-        .counter-btn.minus:hover { background: #cc0000; }
-        .counter-btn.plus { background: #44aa44; color: white; }
-        .counter-btn.plus:hover { background: #228822; }
-        .counter-number { font-size: 20px; font-weight: bold; min-width: 40px; display: inline-block; }
-        .price-breakdown { background: rgba(0,102,204,0.1); padding: 10px; border-radius: 8px; margin-top: 10px; }
-        .seat-map { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin: 20px 0; max-width: 500px; margin-left: auto; margin-right: auto; }
-        .seat { background: #4caf50; color: white; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 12px; }
-        .seat:hover { transform: scale(1.05); background: #45a049; }
-        .seat.selected { background: #ff9800; color: white; }
-        .seat-info { text-align: center; margin-top: 10px; font-size: 12px; }
+        
         .weather-widget { background: rgba(0,102,204,0.1); padding: 8px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
         .notify-btn { background: #ff9800; color: white; border: none; padding: 4px 10px; border-radius: 15px; font-size: 11px; cursor: pointer; margin-left: 8px; }
         .notify-btn:hover { background: #e68900; }
+        
         .tab-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
         .tab { padding: 10px 20px; cursor: pointer; border-radius: 10px 10px 0 0; transition: 0.3s; }
         .tab.active { background: var(--btn); color: white; }
-        .tab:hover:not(.active) { background: rgba(0,102,204,0.1); }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        /* НОВІ СТИЛІ */
-        .date-input { padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); margin-left: 10px; }
-        .print-btn { background: #28a745; color: white; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px; font-size: 11px; }
+        .date-input { padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        .print-btn { background: #28a745; color: white; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; }
         .print-btn:hover { background: #218838; }
+        
         .promo-input { display: flex; gap: 10px; align-items: center; margin: 15px 0; padding: 10px; background: rgba(0,102,204,0.1); border-radius: 10px; flex-wrap: wrap; }
-        .promo-input input { padding: 8px; border-radius: 5px; border: 1px solid var(--border); flex: 1; min-width: 150px; }
-        .promo-input button { background: #ff9800; padding: 8px 15px; }
+        .promo-input input { padding: 8px; border-radius: 5px; border: 1px solid var(--border); flex: 1; min-width: 150px; background: var(--card); color: var(--text); }
+        .promo-input button { background: #ff9800; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        
         .popular-badge { background: linear-gradient(135deg, #ff4444, #ff9800); color: white; padding: 2px 8px; border-radius: 15px; font-size: 10px; margin-left: 5px; }
-        .quick-date-buttons { display: flex; gap: 5px; margin-left: 10px; }
+        .quick-date-buttons { display: flex; gap: 5px; }
         .quick-date-btn { background: rgba(0,102,204,0.2); border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 12px; }
-        .quick-date-btn:hover { background: var(--btn); color: white; }
+        
         .search-history { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .history-item { background: rgba(0,102,204,0.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.2s; }
         .history-item:hover { background: var(--btn); color: white; }
         
-        @media (max-width: 768px) { th, td { font-size: 12px; padding: 5px; } .search-box { flex-direction: column; } .autocomplete-container { width: 100%; } .counter-btn { width: 30px; height: 30px; } .seat-map { grid-template-columns: repeat(4, 1fr); } }
+        .theme-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--btn);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .route-card {
+            background: var(--card);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        
+        @media (max-width: 768px) { 
+            th, td { font-size: 12px; padding: 8px; } 
+            .search-box { flex-direction: column; } 
+            .autocomplete-container { width: 100%; }
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>🚆 Розклад поїздів України</h1>
         <nav>
-            <a href="index.html">🏠 Головна</a>
-            <a href="news.html">📰 Новини</a>
-            <a href="schedule.html">📅 Розклад</a>
-            <a href="map.html">🗺 Карта</a>
-            <a href="contacts.html">📞 Контакти</a>
-            <a href="login.html">🔐 Вхід</a>
-            <a href="register.html">📝 Реєстрація</a>
-            <a href="profile.html">👤 Кабінет</a>
-            <a href="admin.html">⚙ Адмін</a>
+            <a href="#">🏠 Головна</a>
+            <a href="#">📰 Новини</a>
+            <a href="#">📅 Розклад</a>
+            <a href="#">🗺 Карта</a>
+            <a href="#">📞 Контакти</a>
+            <a href="#">🔐 Вхід</a>
+            <a href="#">📝 Реєстрація</a>
+            <a href="#">👤 Кабінет</a>
+            <a href="#">⚙ Адмін</a>
         </nav>
     </header>
 
@@ -131,7 +207,9 @@
         <div id="domesticTab" class="tab-content active">
             <div style="overflow-x: auto;">
                 <table id="routesTable">
-                    <thead><tr><th>🚉 Звідки</th><th>📍 Куди</th><th>⏰ Час</th><th>💰 Дорослий</th><th>🧒 Дитячий</th><th>⏱ Тривалість</th><th>📏 Відстань</th><th>🌡 Погода</th><th>🎫 Дія</th></tr></thead>
+                    <thead>
+                        <tr><th>🚉 Звідки</th><th>📍 Куди</th><th>⏰ Час</th><th>💰 Дорослий</th><th>🧒 Дитячий</th><th>⏱ Тривалість</th><th>📏 Відстань</th><th>🌡 Погода</th><th>🎫 Дія</th>
+                    </thead>
                     <tbody id="routesList"></tbody>
                 </table>
             </div>
@@ -140,7 +218,9 @@
         <div id="internationalTab" class="tab-content">
             <div style="overflow-x: auto;">
                 <table id="internationalTable">
-                    <thead><tr><th>🚉 Звідки</th><th>🌍 Куди</th><th>⏰ Час</th><th>💰 Дорослий</th><th>🧒 Дитячий</th><th>⏱ Тривалість</th><th>📏 Відстань</th><th>🛂 Віза</th><th>🎫 Дія</th></tr></thead>
+                    <thead>
+                        <tr><th>🚉 Звідки</th><th>🌍 Куди</th><th>⏰ Час</th><th>💰 Дорослий</th><th>🧒 Дитячий</th><th>⏱ Тривалість</th><th>📏 Відстань</th><th>🛂 Віза</th><th>🎫 Дія</th>
+                    </thead>
                     <tbody id="internationalList"></tbody>
                 </table>
             </div>
@@ -154,7 +234,7 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
-        // ========== ВСІ ВАШІ ІСНУЮЧІ ЗМІННІ ТА ФУНКЦІЇ ==========
+        // ========== ДАНІ ==========
         const allStations = [
             "Київ", "Львів", "Одеса", "Харків", "Дніпро", "Запоріжжя", "Вінниця", "Житомир", "Чернігів", "Суми", 
             "Полтава", "Тернопіль", "Луцьк", "Рівне", "Хмельницький", "Чернівці", "Ужгород", "Івано-Франківськ", 
@@ -164,9 +244,9 @@
             "Лубни", "Пирятин", "Бровари", "Бориспіль", "Ірпінь", "Буча", "Вишгород", "Боярка",
             "Варшава", "Прага", "Будапешт", "Відень", "Берлін", "Краків", "Перемишль", "Хелм", "Вроцлав", "Гданськ"
         ];
-        // ========== ВНУТРІШНІ МАРШРУТИ (50+) ==========
+        
         let routes = [
-            { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год", distance: "540 км" },
+             { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год", distance: "540 км" },
             { id: 2, from: "Київ", to: "Одеса", time: "09:30", price: 420, duration: "4.5 год", distance: "480 км" },
             { id: 3, from: "Київ", to: "Харків", time: "07:15", price: 380, duration: "4.5 год", distance: "470 км" },
             { id: 4, from: "Київ", to: "Дніпро", time: "10:00", price: 350, duration: "4 год", distance: "440 км" },
@@ -219,7 +299,7 @@
         ];
 
         let internationalRoutes = [
-            { id: 101, from: "Київ", to: "Варшава", time: "06:00", price: 1200, duration: "10 год", distance: "800 км", visa: "Шенген" },
+          { id: 101, from: "Київ", to: "Варшава", time: "06:00", price: 1200, duration: "10 год", distance: "800 км", visa: "Шенген" },
             { id: 102, from: "Київ", to: "Прага", time: "07:30", price: 1500, duration: "14 год", distance: "1200 км", visa: "Шенген" },
             { id: 103, from: "Київ", to: "Будапешт", time: "09:00", price: 1350, duration: "12 год", distance: "1050 км", visa: "Шенген" },
             { id: 104, from: "Київ", to: "Відень", time: "08:15", price: 1450, duration: "13 год", distance: "1150 км", visa: "Шенген" },
@@ -231,68 +311,85 @@
             { id: 110, from: "Львів", to: "Гданськ", time: "12:00", price: 1100, duration: "8 год", distance: "650 км", visa: "Шенген" },
             { id: 111, from: "Ужгород", to: "Будапешт", time: "06:30", price: 600, duration: "3 год", distance: "180 км", visa: "Шенген" }
         ];
-  // ========== МІЖНАРОДНІ МАРШРУТИ ==========
+        
         let priceAlerts = JSON.parse(localStorage.getItem('price_alerts') || '[]');
-
-        function saveRoutes() { localStorage.setItem("railway_routes", JSON.stringify(routes)); }
-        function loadRoutes() { const saved = localStorage.getItem("railway_routes"); if(saved) routes = JSON.parse(saved); else saveRoutes(); }
-
-        window.switchTab = function(tab) {
+        let selectedDate = new Date().toISOString().split('T')[0];
+        let searchHistory = JSON.parse(localStorage.getItem('search_history') || '[]');
+        
+        const promoCodes = { 'WELCOME10': 10, 'RAILWAY15': 15, 'STUDENT20': 20, 'FAMILY25': 25, 'HAPPY30': 30 };
+        
+        // ========== ФУНКЦІЇ ==========
+        
+        function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             if(tab === 'domestic') {
                 document.querySelector('.tab:first-child').classList.add('active');
                 document.getElementById('domesticTab').classList.add('active');
+                showAllRoutes();
             } else {
                 document.querySelector('.tab:last-child').classList.add('active');
                 document.getElementById('internationalTab').classList.add('active');
                 showInternationalRoutes();
             }
-        };
-
+        }
+        
         async function getWeather(city) {
             const weatherMap = {
                 "Київ": "☀️ +22°C", "Львів": "⛅ +18°C", "Одеса": "🌊 +24°C", "Харків": "☁️ +20°C",
-                "Дніпро": "🌤️ +21°C", "Запоріжжя": "☀️ +23°C", "Вінниця": "🌦️ +17°C", "Житомир": "☁️ +16°C",
-                "Варшава": "🌤️ +18°C", "Прага": "⛅ +16°C", "Будапешт": "☀️ +20°C", "Відень": "🌤️ +17°C"
+                "Дніпро": "🌤️ +21°C", "Запоріжжя": "☀️ +23°C", "Варшава": "🌤️ +18°C", "Прага": "⛅ +16°C"
             };
             return weatherMap[city] || "🌡️ +15°C";
         }
-
-        window.subscribeToDiscount = function(routeId, isInternational = false) {
-            const route = isInternational ? internationalRoutes.find(r => r.id === routeId) : routes.find(r => r.id === routeId);
-            if(!route) return;
-            if(priceAlerts.includes(routeId)) {
-                Swal.fire('Вже підписано', `Ви вже стежите за ${route.from} → ${route.to}`, 'info');
-                return;
-            }
-            priceAlerts.push(routeId);
-            localStorage.setItem('price_alerts', JSON.stringify(priceAlerts));
-            Swal.fire('✅ Підписка оформлена!', `Ми повідомимо вас про знижки на ${route.from} → ${route.to}`, 'success');
-        };
-
+        
         function showAllRoutes() {
             const tbody = document.getElementById("routesList");
             if(!tbody) return;
             tbody.innerHTML = routes.map(r => {
                 const childPrice = Math.round(r.price * 0.5);
-                return `<tr><td><strong>${r.from}</strong></td><td><strong>${r.to}</strong></td><td>🕐 ${r.time}</td><td>💰 ${r.price} грн</td><td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td><td>⏱ ${r.duration}</td><td>📏 ${r.distance}</td><td><span class="weather-widget" id="weather-${r.id}">🌡️ завантаження...</span></td><td><button class="buy-btn" onclick='buyTicket(${r.id}, false)'>🎫 Купити</button><button class="notify-btn" onclick='subscribeToDiscount(${r.id}, false)'>🔔 Стежити</button></td></tr>`;
+                return `<tr>
+                    <td><strong>${r.from}</strong></td>
+                    <td><strong>${r.to}</strong></td>
+                    <td>🕐 ${r.time}</td>
+                    <td>💰 ${r.price} грн</td>
+                    <td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td>
+                    <td>⏱ ${r.duration}</td>
+                    <td>📏 ${r.distance}</td>
+                    <td><span class="weather-widget" id="weather-${r.id}">🌡️ завантаження...</span></td>
+                    <td><button class="buy-btn" onclick='buyTicket(${r.id}, false)'>🎫 Купити</button>
+                    <button class="notify-btn" onclick='subscribeToDiscount(${r.id}, false)'>🔔 Стежити</button></td>
+                </tr>`;
             }).join('');
-            routes.forEach(async r => { const span = document.getElementById(`weather-${r.id}`); if(span) span.innerHTML = await getWeather(r.to); });
+            routes.forEach(async r => {
+                const span = document.getElementById(`weather-${r.id}`);
+                if(span) span.innerHTML = await getWeather(r.to);
+            });
         }
-
+        
         function showInternationalRoutes() {
             const tbody = document.getElementById("internationalList");
             if(!tbody) return;
             tbody.innerHTML = internationalRoutes.map(r => {
                 const childPrice = Math.round(r.price * 0.5);
-                return `<tr><td><strong>${r.from}</strong> <span class="international-badge">🇺🇦</span></td><td><strong>${r.to}</strong> <span class="international-badge">🌍</span></td><td>🕐 ${r.time}</td><td>💰 ${r.price} грн</td><td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td><td>⏱ ${r.duration}</td><td>📏 ${r.distance}</td><td>🛂 ${r.visa}</td><td><button class="buy-btn" onclick='buyTicket(${r.id}, true)'>🎫 Купити</button><button class="notify-btn" onclick='subscribeToDiscount(${r.id}, true)'>🔔 Стежити</button></td></tr>`;
+                return `<tr>
+                    <td><strong>${r.from}</strong> <span class="international-badge">🇺🇦</span></td>
+                    <td><strong>${r.to}</strong> <span class="international-badge">🌍</span></td>
+                    <td>🕐 ${r.time}</td>
+                    <td>💰 ${r.price} грн</td>
+                    <td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td>
+                    <td>⏱ ${r.duration}</td>
+                    <td>📏 ${r.distance}</td>
+                    <td>🛂 ${r.visa}</td>
+                    <td><button class="buy-btn" onclick='buyTicket(${r.id}, true)'>🎫 Купити</button>
+                    <button class="notify-btn" onclick='subscribeToDiscount(${r.id}, true)'>🔔 Стежити</button></td>
+                </tr>`;
             }).join('');
         }
-
+        
         function setupAutocomplete(inputId, listId) {
             const input = document.getElementById(inputId);
             const list = document.getElementById(listId);
+            if(!input || !list) return;
             input.addEventListener('input', function() {
                 const value = this.value.toLowerCase();
                 if(value.length < 1) { list.style.display = 'none'; return; }
@@ -305,163 +402,87 @@
             input.addEventListener('blur', () => setTimeout(() => list.style.display = 'none', 200));
         }
         
-        window.selectStation = function(inputId, station) {
+        function selectStation(inputId, station) {
             document.getElementById(inputId).value = station;
             document.getElementById(inputId === 'searchFrom' ? 'fromAutocomplete' : 'toAutocomplete').style.display = 'none';
-        };
-
-        window.searchRoutes = function() {
+        }
+        
+        function searchRoutes() {
             const from = document.getElementById("searchFrom")?.value.toLowerCase().trim();
             const to = document.getElementById("searchTo")?.value.toLowerCase().trim();
             const resultsDiv = document.getElementById("searchResults");
-            if(!from && !to) { resultsDiv.innerHTML = ''; showAllRoutes(); showInternationalRoutes(); return; }
+            if(!from && !to) { 
+                resultsDiv.innerHTML = ''; 
+                showAllRoutes(); 
+                showInternationalRoutes(); 
+                return; 
+            }
+            
+            // Зберігаємо в історію
+            if(from || to) {
+                const search = { from: from || '', to: to || '', date: new Date().toLocaleString() };
+                searchHistory = [search, ...searchHistory.filter(s => s.from === from && s.to === to)].slice(0, 5);
+                localStorage.setItem('search_history', JSON.stringify(searchHistory));
+                updateSearchHistoryUI();
+            }
+            
             let domesticFound = routes.filter(r => (!from || r.from.toLowerCase().includes(from)) && (!to || r.to.toLowerCase().includes(to)));
             let internationalFound = internationalRoutes.filter(r => (!from || r.from.toLowerCase().includes(from)) && (!to || r.to.toLowerCase().includes(to)));
+            
             if(domesticFound.length === 0 && internationalFound.length === 0) {
                 resultsDiv.innerHTML = '<div class="route-card" style="text-align: center;"><p>❌ Маршрутів не знайдено</p></div>';
             } else {
                 let html = '';
-                if(domesticFound.length > 0) html += `<h3>🇺🇦 Внутрішні маршрути (${domesticFound.length}):</h3>${domesticFound.map(r => { const cp = Math.round(r.price * 0.5); return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 ${r.price} грн | 🧒 ${cp} грн<br><button onclick='buyTicket(${r.id}, false)'>🎫 Купити</button></div>`; }).join('')}`;
-                if(internationalFound.length > 0) html += `<h3>🌍 Міжнародні маршрути (${internationalFound.length}):</h3>${internationalFound.map(r => { const cp = Math.round(r.price * 0.5); return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 ${r.price} грн | 🧒 ${cp} грн | 🛂 ${r.visa}<br><button onclick='buyTicket(${r.id}, true)'>🎫 Купити</button></div>`; }).join('')}`;
+                if(domesticFound.length > 0) {
+                    html += `<h3>🇺🇦 Внутрішні маршрути (${domesticFound.length}):</h3>`;
+                    html += domesticFound.map(r => { 
+                        const cp = Math.round(r.price * 0.5); 
+                        return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 ${r.price} грн | 🧒 ${cp} грн<br><button class="buy-btn" onclick='buyTicket(${r.id}, false)'>🎫 Купити</button></div>`; 
+                    }).join('');
+                }
+                if(internationalFound.length > 0) {
+                    html += `<h3>🌍 Міжнародні маршрути (${internationalFound.length}):</h3>`;
+                    html += internationalFound.map(r => { 
+                        const cp = Math.round(r.price * 0.5); 
+                        return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 ${r.price} грн | 🧒 ${cp} грн | 🛂 ${r.visa}<br><button class="buy-btn" onclick='buyTicket(${r.id}, true)'>🎫 Купити</button></div>`; 
+                    }).join('');
+                }
                 resultsDiv.innerHTML = html;
             }
-        };
-
-        window.clearSearch = function() {
+        }
+        
+        function clearSearch() {
             document.getElementById("searchFrom").value = '';
             document.getElementById("searchTo").value = '';
             document.getElementById("searchResults").innerHTML = '';
-            showAllRoutes(); showInternationalRoutes();
-        };
-
-        let adultCount = 1, childCount = 0, currentRoute = null, currentIsInternational = false;
-        let selectedSeats = [];
-        
-        function updateCounters() {
-            document.getElementById('adultCountDisplay').innerText = adultCount;
-            document.getElementById('childCountDisplay').innerText = childCount;
-            const total = (adultCount * currentRoute.price) + (childCount * Math.round(currentRoute.price * 0.5));
-            document.getElementById('totalPrice').innerText = total;
-            document.getElementById('totalPriceDisplay').innerText = total;
+            showAllRoutes();
+            showInternationalRoutes();
         }
         
-        window.changeAdultCount = function(delta) {
-            const newVal = adultCount + delta;
-            if(newVal >= 0 && (newVal + childCount) <= 10) adultCount = newVal;
-            updateCounters();
-        };
+        function subscribeToDiscount(routeId, isInternational) {
+            const route = isInternational ? internationalRoutes.find(r => r.id === routeId) : routes.find(r => r.id === routeId);
+            if(!route) return;
+            if(priceAlerts.includes(routeId)) {
+                Swal.fire('Вже підписано', `Ви вже стежите за ${route.from} → ${route.to}`, 'info');
+                return;
+            }
+            priceAlerts.push(routeId);
+            localStorage.setItem('price_alerts', JSON.stringify(priceAlerts));
+            Swal.fire('✅ Підписка оформлена!', `Ми повідомимо вас про знижки на ${route.from} → ${route.to}`, 'success');
+        }
         
-        window.changeChildCount = function(delta) {
-            const newVal = childCount + delta;
-            if(newVal >= 0 && (adultCount + newVal) <= 10) childCount = newVal;
-            updateCounters();
-        };
-
-        window.selectSeat = function(seatNum) {
-            if(selectedSeats.includes(seatNum)) {
-                selectedSeats = selectedSeats.filter(s => s !== seatNum);
-                document.getElementById(`seat-${seatNum}`)?.classList.remove('selected');
-            } else {
-                if(selectedSeats.length < (adultCount + childCount)) {
-                    selectedSeats.push(seatNum);
-                    document.getElementById(`seat-${seatNum}`)?.classList.add('selected');
-                } else {
-                    Swal.fire('Увага', `Ви вже вибрали ${selectedSeats.length} місць`, 'warning');
-                }
-            }
-            const needed = adultCount + childCount;
-            const selectedSpan = document.getElementById('selectedCount');
-            const neededSpan = document.getElementById('totalNeeded');
-            if(selectedSpan) selectedSpan.innerText = selectedSeats.length;
-            if(neededSpan) neededSpan.innerText = needed;
-        };
-
-        function renderSeatMap() {
-            let html = '<div class="seat-map">';
-            for(let i = 1; i <= 32; i++) {
-                const isSelected = selectedSeats.includes(i);
-                html += `<div class="seat ${isSelected ? 'selected' : ''}" id="seat-${i}" onclick="selectSeat(${i})">${i}</div>`;
-            }
-            html += '</div><div class="seat-info">💡 Клікніть на місце. Вибрано: <span id="selectedCount">0</span>/<span id="totalNeeded">0</span></div>';
-            return html;
-        }
-
-        function generateQRCode(data, elementId) {
-            const element = document.getElementById(elementId);
-            if(element) { element.innerHTML = ''; new QRCode(element, { text: data, width: 150, height: 150 }); }
-        }
-
-        // ========== НОВІ ФУНКЦІЇ ==========
-        let selectedDate = new Date().toISOString().split('T')[0];
-
-        function addDateSelector() {
-            const searchBox = document.querySelector('.search-box');
-            if(searchBox && !document.getElementById('travelDate')) {
-                const dateHtml = `<div style="display: flex; gap: 5px; align-items: center;"><input type="date" id="travelDate" class="date-input" value="${selectedDate}"><div class="quick-date-buttons"><button class="quick-date-btn" onclick="setTravelDate('today')">📅 Сьогодні</button><button class="quick-date-btn" onclick="setTravelDate('tomorrow')">📅 Завтра</button></div></div>`;
-                searchBox.insertAdjacentHTML('beforeend', dateHtml);
-                document.getElementById('travelDate').addEventListener('change', (e) => { selectedDate = e.target.value; });
-            }
-        }
-
-        window.setTravelDate = function(type) {
-            const date = new Date();
-            if(type === 'tomorrow') date.setDate(date.getDate() + 1);
-            selectedDate = date.toISOString().split('T')[0];
-            const dateInput = document.getElementById('travelDate');
-            if(dateInput) dateInput.value = selectedDate;
-            Swal.fire('✅ Обрано', `Дата: ${selectedDate}`, 'success');
-        };
-
-        window.printTicket = function(ticketInfo) {
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`<!DOCTYPE html><html><head><title>Квиток ${ticketInfo.from} → ${ticketInfo.to}</title><style>body{font-family:Arial;padding:20px}.ticket{border:2px solid #003366;border-radius:10px;padding:20px;max-width:400px;margin:auto}.header{background:#003366;color:white;padding:10px;text-align:center;border-radius:8px}.info{margin:15px 0;line-height:1.8}.footer{text-align:center;font-size:12px;color:#666;margin-top:20px}</style></head><body><div class="ticket"><div class="header"><h2>🚆 ЗАЛІЗНИЧНИЙ КВИТОК</h2></div><div class="info"><p><strong>Маршрут:</strong> ${ticketInfo.from} → ${ticketInfo.to}</p><p><strong>Дата:</strong> ${ticketInfo.date}</p><p><strong>Час:</strong> ${ticketInfo.time}</p><p><strong>Пасажири:</strong> Дорослих: ${ticketInfo.adultCount}, Дітей: ${ticketInfo.childCount}</p><p><strong>Місця:</strong> ${ticketInfo.seats.join(', ')}</p><p><strong>Сума:</strong> ${ticketInfo.price} грн</p></div><div class="footer">Пред'явіть цей квиток контролеру<br>Приємної поїздки!</div></div></body></html>`);
-            printWindow.print();
-            printWindow.close();
-        };
-
-        function getPopularRoutes() {
-            const stats = JSON.parse(localStorage.getItem('ticket_stats') || '[]');
-            const popularity = {};
-            stats.forEach(s => { popularity[`${s.from}→${s.to}`] = (popularity[`${s.from}→${s.to}`] || 0) + 1; });
-            return Object.entries(popularity).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        }
-
-        function addPopularBadges() {
-            const popular = getPopularRoutes();
-            document.querySelectorAll('#routesList tr, #internationalList tr').forEach(row => {
-                const fromCell = row.cells[0];
-                const toCell = row.cells[1];
-                if(fromCell && toCell) {
-                    const routeKey = `${fromCell.innerText.trim()}→${toCell.innerText.trim()}`;
-                    if(popular.some(p => p[0] === routeKey) && !row.querySelector('.popular-badge')) {
-                        fromCell.innerHTML = `<strong>${fromCell.innerText.trim()}</strong> <span class="popular-badge">🔥 ХІТ</span>`;
-                    }
-                }
-            });
-        }
-
         function getAvailableSeats() {
             const booked = JSON.parse(localStorage.getItem('booked_seats') || '[]');
             return 32 - booked.length;
         }
-
-        function addSeatsInfo() {
-            const available = getAvailableSeats();
-            const seatsInfo = document.createElement('div');
-            seatsInfo.className = 'promo-input';
-            seatsInfo.style.marginTop = '10px';
-            seatsInfo.style.justifyContent = 'center';
-            seatsInfo.innerHTML = `<span>🎫 Вільних місць у потязі: </span><strong style="font-size: 20px; color: ${available < 5 ? '#ff4444' : '#4caf50'}">${available}</strong><span> з 32</span>${available < 5 ? '<span style="color:#ff4444;"> ⚠️ Останні місця!</span>' : ''}`;
-            const container = document.querySelector('#domesticTab');
-            if(container && !document.getElementById('seatsInfoBox')) {
-                seatsInfo.id = 'seatsInfoBox';
-                container.insertBefore(seatsInfo, container.children[2]);
-            }
-        }
-
-        const promoCodes = { 'WELCOME10': 10, 'RAILWAY15': 15, 'STUDENT20': 20, 'FAMILY25': 25, 'HAPPY30': 30 };
         
-        window.applyPromoCode = function() {
+        function applyDiscount(price) {
+            const promo = JSON.parse(localStorage.getItem('active_promo') || 'null');
+            if(promo) return { price: Math.round(price * (100 - promo.discount) / 100), discount: promo.discount };
+            return { price, discount: 0 };
+        }
+        
+        function applyPromoCode() {
             const code = document.getElementById('promoInput')?.value.toUpperCase();
             if(!code) { Swal.fire('❌ Помилка', 'Введіть промокод', 'error'); return; }
             if(promoCodes[code]) {
@@ -471,218 +492,244 @@
             } else {
                 Swal.fire('❌ Невірний промокод', 'Спробуйте: WELCOME10, RAILWAY15, STUDENT20, FAMILY25, HAPPY30', 'error');
             }
-        };
-
-        function addPromoSection() {
-            const container = document.querySelector('#domesticTab');
-            if(container && !document.getElementById('promoSection')) {
-                const promoHtml = `<div id="promoSection" class="promo-input"><span>🎫 ПРОМОКОД:</span><input type="text" id="promoInput" placeholder="Введіть промокод"><button onclick="applyPromoCode()">💸 Активувати знижку</button><span style="font-size: 11px;">${Object.keys(promoCodes).join(', ')}</span></div>`;
-                container.insertBefore(createElementFromHTML(promoHtml), container.children[2]);
-            }
         }
-
-        function createElementFromHTML(htmlString) {
-            const div = document.createElement('div');
-            div.innerHTML = htmlString.trim();
-            return div.firstChild;
+        
+        function printTicket(ticketInfo) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<!DOCTYPE html><html><head><title>Квиток ${ticketInfo.from} → ${ticketInfo.to}</title><style>body{font-family:Arial;padding:20px}.ticket{border:2px solid #003366;border-radius:10px;padding:20px;max-width:400px;margin:auto}.header{background:#003366;color:white;padding:10px;text-align:center;border-radius:8px}.info{margin:15px 0;line-height:1.8}.footer{text-align:center;font-size:12px;color:#666;margin-top:20px}</style></head><body><div class="ticket"><div class="header"><h2>🚆 ЗАЛІЗНИЧНИЙ КВИТОК</h2></div><div class="info"><p><strong>Маршрут:</strong> ${ticketInfo.from} → ${ticketInfo.to}</p><p><strong>Дата:</strong> ${ticketInfo.date}</p><p><strong>Час:</strong> ${ticketInfo.time}</p><p><strong>Пасажири:</strong> Дорослих: ${ticketInfo.adultCount}, Дітей: ${ticketInfo.childCount}</p><p><strong>Сума:</strong> ${ticketInfo.price} грн</p></div><div class="footer">Пред'явіть цей квиток контролеру<br>Приємної поїздки!</div></div></body></html>`);
+            printWindow.print();
+            printWindow.close();
         }
-
-        function applyDiscount(price) {
-            const promo = JSON.parse(localStorage.getItem('active_promo') || 'null');
-            if(promo) return { price: Math.round(price * (100 - promo.discount) / 100), discount: promo.discount };
-            return { price, discount: 0 };
-        }
-
-        let searchHistory = JSON.parse(localStorage.getItem('search_history') || '[]');
-
-        function saveSearchToHistory(from, to) {
-            if(!from && !to) return;
-            const search = { from, to, date: new Date().toLocaleString() };
-            searchHistory = [search, ...searchHistory.filter(s => !(s.from === from && s.to === to))].slice(0, 5);
-            localStorage.setItem('search_history', JSON.stringify(searchHistory));
-            updateSearchHistoryUI();
-        }
-
+        
         function updateSearchHistoryUI() {
             let historyContainer = document.getElementById('searchHistoryContainer');
             if(!historyContainer && searchHistory.length > 0) {
                 const searchBox = document.querySelector('.search-box');
-                if(searchBox) {
+                if(searchBox && searchBox.parentNode) {
                     const historyHtml = `<div id="searchHistoryContainer" class="search-history"><span>📜 Нещодавні пошуки:</span> ${searchHistory.map(s => `<span class="history-item" onclick="applyHistorySearch('${s.from}', '${s.to}')">${s.from || '?'} → ${s.to || '?'}</span>`).join('')}</div>`;
                     searchBox.insertAdjacentHTML('afterend', historyHtml);
                 }
-            } else if(historyContainer && searchHistory.length > 0) {
+            } else if(historyContainer) {
                 historyContainer.innerHTML = `<span>📜 Нещодавні пошуки:</span> ${searchHistory.map(s => `<span class="history-item" onclick="applyHistorySearch('${s.from}', '${s.to}')">${s.from || '?'} → ${s.to || '?'}</span>`).join('')}`;
             }
         }
-
-        window.applyHistorySearch = function(from, to) {
+        
+        function applyHistorySearch(from, to) {
             document.getElementById('searchFrom').value = from;
             document.getElementById('searchTo').value = to;
             searchRoutes();
-        };
-
-        const originalBuyTicket = window.buyTicket;
-        window.buyTicket = function(routeId, isInternational) {
-            if(!selectedDate) { Swal.fire('⚠️ Виберіть дату', 'Будь ласка, оберіть дату поїздки', 'warning'); return; }
-            const route = (isInternational ? internationalRoutes : routes).find(r => r.id === routeId);
-            if(!route) return;
-            const discounted = applyDiscount(route.price);
-            const originalPrice = route.price;
-            route.price = discounted.price;
-            if(originalBuyTicket) originalBuyTicket(routeId, isInternational);
-            setTimeout(() => {
-                let booked = JSON.parse(localStorage.getItem('booked_seats') || '[]');
-                booked.push(...selectedSeats);
-                localStorage.setItem('booked_seats', JSON.stringify(booked));
-                const user = JSON.parse(localStorage.getItem('current_user'));
-                if(user && user.tickets && user.tickets.length > 0) user.tickets[user.tickets.length - 1].date = selectedDate;
-                const seatsSpan = document.querySelector('#seatsInfoBox strong');
-                if(seatsSpan) { const avail = getAvailableSeats(); seatsSpan.innerText = avail; seatsSpan.style.color = avail < 5 ? '#ff4444' : '#4caf50'; }
-            }, 500);
-            if(discounted.discount > 0) Swal.fire({ title: '🎉 ЗНИЖКА АКТИВОВАНА!', text: `Ви отримали ${discounted.discount}% знижку! Ціна знижена з ${originalPrice} до ${route.price} грн`, icon: 'success', timer: 2000 });
-            route.price = originalPrice;
-        };
-
-        function initNewFeatures() {
-            addDateSelector();
-            addPromoSection();
-            addSeatsInfo();
-            const originalSearchRoutes = window.searchRoutes;
-            window.searchRoutes = function() {
-                const from = document.getElementById('searchFrom')?.value;
-                const to = document.getElementById('searchTo')?.value;
-                if(from || to) saveSearchToHistory(from, to);
-                originalSearchRoutes();
-                setTimeout(addPopularBadges, 100);
-            };
-            const originalShowAllRoutes = window.showAllRoutes;
-            if(originalShowAllRoutes) {
-                window.showAllRoutes = function() {
-                    originalShowAllRoutes();
-                    setTimeout(() => {
-                        addPopularBadges();
-                        document.querySelectorAll('#routesList tr, #internationalList tr').forEach(row => {
-                            const buyBtn = row.querySelector('.buy-btn');
-                            if(buyBtn && !row.querySelector('.print-btn')) {
-                                const printClone = document.createElement('button');
-                                printClone.className = 'print-btn';
-                                printClone.innerHTML = '🖨️ Друк';
-                                printClone.onclick = () => {
-                                    const cells = row.cells;
-                                    printTicket({ from: cells[0]?.innerText.replace(/[^А-ЯІЇЄҐа-яіїєґ\s]/g, '').trim(), to: cells[1]?.innerText.replace(/[^А-ЯІЇЄҐа-яіїєґ\s]/g, '').trim(), time: cells[2]?.innerText.replace('🕐', '').trim(), price: cells[3]?.innerText.replace('💰', '').replace('грн', '').trim(), date: selectedDate, adultCount: 1, childCount: 0, seats: [Math.floor(Math.random() * 32) + 1] });
-                                };
-                                buyBtn.parentNode.appendChild(printClone);
-                            }
-                        });
-                        showInternationalRoutes();
-                    }, 50);
-                };
-            }
-            updateSearchHistoryUI();
-            addPopularBadges();
         }
-
+        
+        function setTravelDate(type) {
+            const date = new Date();
+            if(type === 'tomorrow') date.setDate(date.getDate() + 1);
+            selectedDate = date.toISOString().split('T')[0];
+            const dateInput = document.getElementById('travelDate');
+            if(dateInput) dateInput.value = selectedDate;
+            Swal.fire('✅ Обрано', `Дата: ${selectedDate}`, 'success');
+        }
+        
+        // ГОЛОВНА ФУНКЦІЯ ПОКУПКИ (ВИПРАВЛЕНО)
+        function buyTicket(routeId, isInternational) {
+            // Перевірка авторизації
+            const user = JSON.parse(localStorage.getItem('current_user'));
+            if(!user) {
+                Swal.fire({ 
+                    title: 'Потрібно увійти', 
+                    text: 'Перейти на сторінку входу?', 
+                    icon: 'question', 
+                    showCancelButton: true,
+                    confirmButtonText: 'Так, увійти',
+                    cancelButtonText: 'Скасувати'
+                }).then(result => {
+                    if(result.isConfirmed) window.location.href = 'login.html';
+                });
+                return;
+            }
+            
+            // Перевірка дати
+            if(!selectedDate) {
+                Swal.fire('⚠️ Виберіть дату', 'Будь ласка, оберіть дату поїздки', 'warning');
+                return;
+            }
+            
+            // Отримуємо маршрут
+            let route = isInternational ? internationalRoutes.find(r => r.id === routeId) : routes.find(r => r.id === routeId);
+            
+            if(!route) {
+                Swal.fire('Помилка', 'Маршрут не знайдено', 'error');
+                return;
+            }
+            
+            // Застосовуємо промокод
+            const discounted = applyDiscount(route.price);
+            
+            // Показуємо діалог покупки
+            Swal.fire({
+                title: `🎫 Квиток ${route.from} → ${route.to}`,
+                html: `
+                    <div style="text-align: center;">
+                        <p>💰 Ціна: <strong>${discounted.price} грн</strong> ${discounted.discount > 0 ? `<span style="color:#ff9800;">(знижка ${discounted.discount}%)</span>` : ''}</p>
+                        <p>📅 Дата: <strong>${selectedDate}</strong></p>
+                        <p>⏰ Час відправлення: <strong>${route.time}</strong></p>
+                        <hr>
+                        <div style="margin: 10px 0;">
+                            <label>👨 Кількість дорослих:</label>
+                            <div>
+                                <button type="button" id="adultMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
+                                <span id="adultCount" style="font-size:20px; margin:0 15px;">1</span>
+                                <button type="button" id="adultPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
+                            </div>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <label>🧒 Кількість дітей (до 12 років):</label>
+                            <div>
+                                <button type="button" id="childMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
+                                <span id="childCount" style="font-size:20px; margin:0 15px;">0</span>
+                                <button type="button" id="childPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div id="priceBreakdown" style="background:rgba(0,102,204,0.1); padding:10px; border-radius:8px;">
+                            💰 Дорослі: 1 × ${discounted.price} грн = ${discounted.price} грн<br>
+                            👶 Діти: 0 × ${Math.round(discounted.price * 0.5)} грн = 0 грн<br>
+                            <strong>Всього: ${discounted.price} грн</strong>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '✅ Підтвердити покупку',
+                cancelButtonText: '❌ Скасувати',
+                didOpen: () => {
+                    let adult = 1, child = 0;
+                    const adultSpan = document.getElementById('adultCount');
+                    const childSpan = document.getElementById('childCount');
+                    const priceDiv = document.getElementById('priceBreakdown');
+                    
+                    const updatePrice = () => {
+                        const adultPrice = discounted.price * adult;
+                        const childPrice = Math.round(discounted.price * 0.5) * child;
+                        const total = adultPrice + childPrice;
+                        priceDiv.innerHTML = `💰 Дорослі: ${adult} × ${discounted.price} грн = ${adultPrice} грн<br>👶 Діти: ${child} × ${Math.round(discounted.price * 0.5)} грн = ${childPrice} грн<br><strong>Всього: ${total} грн</strong>`;
+                    };
+                    
+                    document.getElementById('adultPlus').onclick = () => { if(adult + child < 10) { adult++; adultSpan.innerText = adult; updatePrice(); } };
+                    document.getElementById('adultMinus').onclick = () => { if(adult > 0) { adult--; adultSpan.innerText = adult; updatePrice(); } };
+                    document.getElementById('childPlus').onclick = () => { if(adult + child < 10) { child++; childSpan.innerText = child; updatePrice(); } };
+                    document.getElementById('childMinus').onclick = () => { if(child > 0) { child--; childSpan.innerText = child; updatePrice(); } };
+                }
+            }).then(result => {
+                if(result.isConfirmed) {
+                    const adult = parseInt(document.getElementById('adultCount')?.innerText || 1);
+                    const child = parseInt(document.getElementById('childCount')?.innerText || 0);
+                    const totalPrice = (discounted.price * adult) + (Math.round(discounted.price * 0.5) * child);
+                    
+                    // Зберігаємо квиток
+                    const tickets = JSON.parse(localStorage.getItem('user_tickets') || '[]');
+                    tickets.push({
+                        id: Date.now(),
+                        from: route.from,
+                        to: route.to,
+                        date: selectedDate,
+                        time: route.time,
+                        adultCount: adult,
+                        childCount: child,
+                        price: totalPrice,
+                        discount: discounted.discount
+                    });
+                    localStorage.setItem('user_tickets', JSON.stringify(tickets));
+                    
+                    Swal.fire('✅ Успішно!', `Квиток ${route.from} → ${route.to} придбано! Сума: ${totalPrice} грн`, 'success');
+                    
+                    // Очищаємо використаний промокод
+                    if(discounted.discount > 0) localStorage.removeItem('active_promo');
+                }
+            });
+        }
+        
+        function addDateSelector() {
+            const searchBox = document.querySelector('.search-box');
+            if(searchBox && !document.getElementById('travelDate')) {
+                const dateHtml = `<div style="display: flex; gap: 5px; align-items: center;">
+                    <input type="date" id="travelDate" class="date-input" value="${selectedDate}">
+                    <div class="quick-date-buttons">
+                        <button class="quick-date-btn" onclick="setTravelDate('today')">📅 Сьогодні</button>
+                        <button class="quick-date-btn" onclick="setTravelDate('tomorrow')">📅 Завтра</button>
+                    </div>
+                </div>`;
+                searchBox.insertAdjacentHTML('beforeend', dateHtml);
+                document.getElementById('travelDate').addEventListener('change', (e) => { selectedDate = e.target.value; });
+            }
+        }
+        
+        function addPromoSection() {
+            const container = document.querySelector('#domesticTab');
+            if(container && !document.getElementById('promoSection')) {
+                const promoHtml = `<div id="promoSection" class="promo-input">
+                    <span>🎫 ПРОМОКОД:</span>
+                    <input type="text" id="promoInput" placeholder="Введіть промокод">
+                    <button onclick="applyPromoCode()">💸 Активувати знижку</button>
+                    <span style="font-size: 11px;">${Object.keys(promoCodes).join(', ')}</span>
+                </div>`;
+                container.insertAdjacentHTML('afterbegin', promoHtml);
+            }
+        }
+        
+        function addSeatsInfo() {
+            const available = getAvailableSeats();
+            const container = document.querySelector('#domesticTab');
+            if(container && !document.getElementById('seatsInfoBox')) {
+                const seatsHtml = `<div id="seatsInfoBox" class="promo-input" style="justify-content: center; margin-top: 10px;">
+                    <span>🎫 Вільних місць у потязі: </span>
+                    <strong style="font-size: 20px; color: ${available < 5 ? '#ff4444' : '#4caf50'}">${available}</strong>
+                    <span> з 32</span>
+                    ${available < 5 ? '<span style="color:#ff4444;"> ⚠️ Останні місця!</span>' : ''}
+                </div>`;
+                container.insertBefore(document.createElement('div'), container.children[1]);
+                container.children[1].outerHTML = seatsHtml;
+            }
+        }
+        
         function toggleTheme() {
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
         }
         
-        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-        
-        setupAutocomplete('searchFrom', 'fromAutocomplete');
-        setupAutocomplete('searchTo', 'toAutocomplete');
-        loadRoutes();
-        showAllRoutes();
-        showInternationalRoutes();
-        initNewFeatures();
-    </script>
-// ========== ВИПРАВЛЕННЯ ФУНКЦІЇ ПОКУПКИ ==========
-// Переконуємось, що оригінальна функція збережена
-if(typeof originalBuyTicket === 'undefined') {
-    // Зберігаємо оригінальну функцію якщо вона ще не збережена
-    window.originalBuyTicket = window.buyTicket;
-}
-
-// Повністю перевизначаємо функцію покупки
-window.buyTicket = function(routeId, isInternational) {
-    // Перевірка авторизації
-    const user = JSON.parse(localStorage.getItem('current_user'));
-    if(!user) {
-        Swal.fire({ 
-            title: 'Потрібно увійти', 
-            text: 'Перейти на сторінку входу?', 
-            icon: 'question', 
-            showCancelButton: true,
-            confirmButtonText: 'Так, увійти',
-            cancelButtonText: 'Скасувати'
-        }).then(result => {
-            if(result.isConfirmed) window.location.href = 'login.html';
-        });
-        return;
-    }
-    
-    // Перевірка дати
-    if(!selectedDate) {
-        Swal.fire('⚠️ Виберіть дату', 'Будь ласка, оберіть дату поїздки', 'warning');
-        return;
-    }
-    
-    // Отримуємо маршрут
-    let route;
-    if(isInternational) {
-        route = window.internationalRoutes ? window.internationalRoutes.find(r => r.id === routeId) : null;
-    } else {
-        route = window.routes ? window.routes.find(r => r.id === routeId) : null;
-    }
-    
-    if(!route) {
-        // Спроба отримати з глобальних змінних
-        if(typeof routes !== 'undefined') route = routes.find(r => r.id === routeId);
-        if(!route && typeof internationalRoutes !== 'undefined') route = internationalRoutes.find(r => r.id === routeId);
-        if(!route) {
-            Swal.fire('Помилка', 'Маршрут не знайдено', 'error');
-            return;
+        // ========== ІНІЦІАЛІЗАЦІЯ ==========
+        function init() {
+            // Відновлення теми
+            if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+            
+            // Налаштування автодоповнення
+            setupAutocomplete('searchFrom', 'fromAutocomplete');
+            setupAutocomplete('searchTo', 'toAutocomplete');
+            
+            // Відображення маршрутів
+            showAllRoutes();
+            showInternationalRoutes();
+            
+            // Додаткові функції
+            addDateSelector();
+            addPromoSection();
+            addSeatsInfo();
+            updateSearchHistoryUI();
+            
+            // Робимо функції глобальними
+            window.switchTab = switchTab;
+            window.searchRoutes = searchRoutes;
+            window.clearSearch = clearSearch;
+            window.buyTicket = buyTicket;
+            window.subscribeToDiscount = subscribeToDiscount;
+            window.applyPromoCode = applyPromoCode;
+            window.printTicket = printTicket;
+            window.setTravelDate = setTravelDate;
+            window.applyHistorySearch = applyHistorySearch;
+            window.toggleTheme = toggleTheme;
+            window.selectStation = selectStation;
         }
-    }
-    
-    // Застосовуємо промокод
-    let finalPrice = route.price;
-    let discountApplied = 0;
-    const promo = JSON.parse(localStorage.getItem('active_promo') || 'null');
-    if(promo) {
-        discountApplied = promo.discount;
-        finalPrice = Math.round(route.price * (100 - discountApplied) / 100);
-    }
-    
-    // Показуємо діалог покупки
-    Swal.fire({
-        title: `🎫 Квиток ${route.from} → ${route.to}`,
-        html: `
-            <div style="text-align: center;">
-                <p>💰 Ціна: <strong>${finalPrice} грн</strong> ${discountApplied > 0 ? `<span style="color:#ff9800;">(знижка ${discountApplied}%)</span>` : ''}</p>
-                <p>📅 Дата: <strong>${selectedDate}</strong></p>
-                <p>⏰ Час відправлення: <strong>${route.time}</strong></p>
-                <hr>
-                <div style="margin: 10px 0;">
-                    <label>👨 Кількість дорослих:</label>
-                    <div>
-                        <button type="button" id="adultMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
-                        <span id="adultCount" style="font-size:20px; margin:0 15px;">1</span>
-                        <button type="button" id="adultPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
-                    </div>
-                </div>
-                <div style="margin: 10px 0;">
-                    <label>🧒 Кількість дітей (до 12 років):</label>
-                    <div>
-                        <button type="button" id="childMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
-                        <span id="childCount" style="font-size:20px; margin:0 15px;">0</span>
-                        <button type="button" id="childPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
-                    </div>
-                </div>
-                <hr>
-                <div id="priceBreakdown" style="background:rgba(0,102,204,0.1); padding:10px; border-radius:8px;">
-                    💰 Дорослі: 1 × ${finalPrice
-    <script>
+        
+        // Запуск
+        init();
+    </script>
 </body>
 </html>
