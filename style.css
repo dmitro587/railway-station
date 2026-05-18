@@ -453,3 +453,42 @@ footer {
     color: var(--header-text);
     margin-top: 2rem;
 }
+
+/* =========== ФУТЕР ========== */
+
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--header);
+    color: var(--header-text);
+    margin-top: 2rem;
+}
+
+/* ========== СТИЛІ ДЛЯ ПОМИЛОК ФОРМ ========== */
+.input-error {
+    border: 2px solid #ff4444 !important;
+    background: rgba(255, 68, 68, 0.05);
+}
+
+.field-error {
+    color: #ff4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+.status.success {
+    color: #4caf50;
+    background: rgba(76, 175, 80, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.status.error {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
