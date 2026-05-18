@@ -2,171 +2,408 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Адмін панель</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin панель</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+        body.dark {
+            background: #1a1a2e;
+            color: #eee;
+        }
+        :root {
+            --bg: #f0f2f5;
+            --card: white;
+            --text: #333;
+            --border: #ddd;
+            --btn: #0066cc;
+            --header: #003366;
+        }
+        body.dark {
+            --bg: #1a1a2e;
+            --card: #16213e;
+            --text: #eee;
+            --border: #2c3e50;
+            --btn: #0f3460;
+            --header: #0f3460;
+        }
+        body { background: var(--bg); color: var(--text); }
+        
+        header {
+            background: var(--header);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        nav a:hover { background: rgba(255,255,255,0.2); }
+        
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .admin-layout {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        .list-section {
+            flex: 2;
+            min-width: 400px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+        }
+        
+        button {
+            background: var(--btn);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover { opacity: 0.8; }
+        .btn-danger { background: #dc3545; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-success { background: #28a745; }
+        
+        .route-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .route-info {
+            flex: 1;
+        }
+        .route-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .theme-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--btn);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-layout { flex-direction: column; }
+            .route-card { flex-direction: column; gap: 10px; }
+            .route-actions { justify-content: flex-end; }
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>🔧 Адмін панель</h1>
+        <h1>🔧 Admin панель – Управління маршрутами</h1>
         <nav>
             <a href="index.html">🏠 Головна</a>
-            <a href="news.html">📰 Новини</a>
             <a href="schedule.html">📅 Розклад</a>
-            <a href="map.html">🗺 Карта</a>
-            <a href="contacts.html">📞 Контакти</a>
-            <a href="login.html">🔐 Вхід</a>
-            <a href="register.html">📝 Реєстрація</a>
-            <a href="profile.html">👤 Кабінет</a>
             <a href="admin.html">⚙ Адмін</a>
+            <a href="login.html">🔐 Вихід</a>
         </nav>
     </header>
+
     <main>
-        <div id="adminContent" style="display: none;">
-            <h2>📊 Статистика продажів</h2>
-            <div id="stats" class="route-card"></div>
-            <canvas id="popularityChart" width="400" height="200"></canvas>
-            <h2>➕ Додати маршрут</h2>
-            <div class="route-card">
-                <input id="newFrom" placeholder="Звідки"> 
-                <input id="newTo" placeholder="Куди"> 
-                <input id="newTime" placeholder="Час"> 
-                <input id="newPrice" placeholder="Ціна"> 
-                <button onclick="addRoute()">➕ Додати</button>
+        <div class="admin-layout">
+            <!-- Форма додавання/редагування -->
+            <div class="form-section">
+                <h2 id="formTitle">➕ Додати новий маршрут</h2>
+                <form id="routeForm">
+                    <input type="hidden" id="routeId" name="id">
+                    <div class="form-group">
+                        <label>🚉 Звідки</label>
+                        <input type="text" id="fromCity" name="from" required placeholder="напр. Київ">
+                    </div>
+                    <div class="form-group">
+                        <label>📍 Куди</label>
+                        <input type="text" id="toCity" name="to" required placeholder="напр. Львів">
+                    </div>
+                    <div class="form-group">
+                        <label>🕐 Час відправлення</label>
+                        <input type="time" id="time" name="time" required>
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Ціна (грн)</label>
+                        <input type="number" id="price" name="price" required min="0" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label>⏱ Тривалість</label>
+                        <input type="text" id="duration" name="duration" placeholder="напр. 5 год">
+                    </div>
+                    <div class="form-group">
+                        <label>📏 Відстань</label>
+                        <input type="text" id="distance" name="distance" placeholder="напр. 540 км">
+                    </div>
+                    <div class="form-group">
+                        <label>⭐ Рейтинг</label>
+                        <input type="number" id="rating" name="rating" step="0.1" min="0" max="5" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>📍 Зупинки (через кому)</label>
+                        <input type="text" id="stops" name="stops" placeholder="напр. Житомир, Рівне">
+                    </div>
+                    <button type="submit" class="btn-success">💾 Зберегти</button>
+                    <button type="button" id="cancelBtn" style="background:#6c757d;">❌ Скасувати</button>
+                </form>
             </div>
-            <h2>📋 Керування маршрутами</h2>
-            <div id="adminRoutes"></div>
-        </div>
-        <div id="loginForm" style="display: none;" class="form-container">
-            <h2>🔐 Вхід для адміністратора</h2>
-            <input type="text" id="adminLogin" placeholder="Логін">
-            <input type="password" id="adminPassword" placeholder="Пароль">
-            <button onclick="checkAdminLogin()">Увійти</button>
-            <p style="margin-top: 1rem;"><a href="index.html">← Повернутися на головну</a></p>
+
+            <!-- Список маршрутів -->
+            <div class="list-section">
+                <h2>📋 Список маршрутів (<span id="routesCount">0</span>)</h2>
+                <div id="routesList"></div>
+            </div>
         </div>
     </main>
+
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-    
+
     <script>
-        // ========== ДАНІ АДМІНІСТРАТОРА ==========
-        // Логін: admin
-        // Пароль: admin123
-        const ADMIN_CREDENTIALS = {
-            login: "admin",
-            password: "admin123"
-        };
+        // ========== КЛЮЧІ ДЛЯ LOCALSTORAGE ==========
+        const ROUTES_KEY = 'railway_routes';
         
-        // Перевірка, чи залогінений адмін
-        function isAdminLoggedIn() {
-            return localStorage.getItem('admin_logged_in') === 'true';
+        // ========== ПОЧАТКОВІ МАРШРУТИ ==========
+        const defaultRoutes = [
+            { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год", distance: "540 км", rating: 4.5, stops: ["Житомир", "Рівне"] },
+            { id: 2, from: "Київ", to: "Одеса", time: "09:30", price: 420, duration: "4.5 год", distance: "480 км", rating: 4.8, stops: ["Біла Церква", "Умань"] },
+            { id: 3, from: "Київ", to: "Харків", time: "07:15", price: 380, duration: "4.5 год", distance: "470 км", rating: 4.2, stops: ["Полтава"] },
+            { id: 4, from: "Київ", to: "Дніпро", time: "10:00", price: 350, duration: "4 год", distance: "440 км", rating: 4.3, stops: ["Кременчук"] },
+            { id: 5, from: "Львів", to: "Київ", time: "07:00", price: 460, duration: "5.5 год", distance: "540 км", rating: 4.7, stops: ["Рівне", "Житомир"] }
+        ];
+        
+        // ========== ФУНКЦІЇ РОБОТИ З LOCALSTORAGE ==========
+        function getRoutes() {
+            const saved = localStorage.getItem(ROUTES_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            } else {
+                localStorage.setItem(ROUTES_KEY, JSON.stringify(defaultRoutes));
+                return [...defaultRoutes];
+            }
         }
         
-        // Вихід адміна
-        function adminLogout() {
-            localStorage.removeItem('admin_logged_in');
-            Swal.fire('Ви вийшли', 'До побачення!', 'info').then(() => {
-                location.reload();
-            });
+        function saveRoutes(routes) {
+            localStorage.setItem(ROUTES_KEY, JSON.stringify(routes));
         }
         
-        // Перевірка логіну адміна
-        function checkAdminLogin() {
-            const login = document.getElementById('adminLogin').value;
-            const password = document.getElementById('adminPassword').value;
+        function addRoute(route) {
+            const routes = getRoutes();
+            const newId = routes.length > 0 ? Math.max(...routes.map(r => r.id)) + 1 : 1;
+            const newRoute = {
+                ...route,
+                id: newId,
+                stops: route.stops ? (Array.isArray(route.stops) ? route.stops : route.stops.split(',').map(s => s.trim())) : []
+            };
+            routes.push(newRoute);
+            saveRoutes(routes);
+            return routes;
+        }
+        
+        function updateRoute(id, updatedRoute) {
+            const routes = getRoutes();
+            const index = routes.findIndex(r => r.id === parseInt(id));
+            if (index !== -1) {
+                routes[index] = {
+                    ...routes[index],
+                    ...updatedRoute,
+                    stops: updatedRoute.stops ? (Array.isArray(updatedRoute.stops) ? updatedRoute.stops : updatedRoute.stops.split(',').map(s => s.trim())) : []
+                };
+                saveRoutes(routes);
+            }
+            return routes;
+        }
+        
+        function deleteRoute(id) {
+            const routes = getRoutes().filter(r => r.id !== parseInt(id));
+            saveRoutes(routes);
+            return routes;
+        }
+        
+        // ========== ВІДОБРАЖЕННЯ СПИСКУ ==========
+        function renderRoutes() {
+            const routes = getRoutes();
+            const container = document.getElementById('routesList');
+            const countSpan = document.getElementById('routesCount');
             
-            if(login === ADMIN_CREDENTIALS.login && password === ADMIN_CREDENTIALS.password) {
-                localStorage.setItem('admin_logged_in', 'true');
-                Swal.fire('Успіх!', 'Вітаємо в адмін панелі!', 'success').then(() => {
-                    location.reload();
-                });
-            } else {
-                Swal.fire('Помилка!', 'Невірний логін або пароль', 'error');
+            countSpan.innerText = routes.length;
+            
+            if (routes.length === 0) {
+                container.innerHTML = '<div class="empty-state">📭 Немає маршрутів. Додайте перший!</div>';
+                return;
             }
+            
+            container.innerHTML = routes.map(route => `
+                <div class="route-card" data-id="${route.id}">
+                    <div class="route-info">
+                        <strong>${route.from} → ${route.to}</strong><br>
+                        🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration} | 📏 ${route.distance}<br>
+                        ⭐ ${route.rating || 0} | 📍 Зупинки: ${Array.isArray(route.stops) ? route.stops.join(', ') : route.stops || 'немає'}
+                    </div>
+                    <div class="route-actions">
+                        <button class="btn-warning" onclick="editRoute(${route.id})">✏ Редагувати</button>
+                        <button class="btn-danger" onclick="confirmDelete(${route.id})">🗑 Видалити</button>
+                    </div>
+                </div>
+            `).join('');
         }
         
-        // Показуємо правильний інтерфейс
-        function showAdminInterface() {
-            if(isAdminLoggedIn()) {
-                document.getElementById('adminContent').style.display = 'block';
-                document.getElementById('loginForm').style.display = 'none';
-                showStats();
-                showAdminRoutes();
-                
-                // Додаємо кнопку виходу в хедер
-                const header = document.querySelector('header');
-                if(!document.getElementById('adminLogoutBtn')) {
-                    const logoutBtn = document.createElement('button');
-                    logoutBtn.id = 'adminLogoutBtn';
-                    logoutBtn.innerHTML = '🚪 Вихід з адмінки';
-                    logoutBtn.style.position = 'absolute';
-                    logoutBtn.style.right = '20px';
-                    logoutBtn.style.top = '20px';
-                    logoutBtn.style.background = '#cc0000';
-                    logoutBtn.onclick = adminLogout;
-                    header.style.position = 'relative';
-                    header.appendChild(logoutBtn);
-                }
-            } else {
-                document.getElementById('adminContent').style.display = 'none';
-                document.getElementById('loginForm').style.display = 'block';
-            }
-        }
-        
-        // ========== СТАТИСТИКА ==========
-        let chart;
-        function showStats() {
-            const stats = JSON.parse(localStorage.getItem('ticket_stats') || '[]');
-            const totalSold = stats.length;
-            const totalRevenue = stats.reduce((sum, t) => sum + t.price, 0);
-            const popular = {};
-            stats.forEach(s => { popular[`${s.from}→${s.to}`] = (popular[`${s.from}→${s.to}`] || 0) + 1; });
-            const popularList = Object.entries(popular).sort((a,b)=>b[1]-a[1]).slice(0,5);
-            document.getElementById('stats').innerHTML = `<h3>📈 Загальна статистика</h3><p>🎫 Продано квитків: <strong>${totalSold}</strong></p><p>💰 Виручка: <strong>${totalRevenue} грн</strong></p><h3>🔥 Популярні напрямки:</h3><ul>${popularList.map(p=>`<li>${p[0]} - ${p[1]} квитків</li>`).join('')}</ul>`;
-            if(chart) chart.destroy();
-            const ctx = document.getElementById('popularityChart').getContext('2d');
-            chart = new Chart(ctx, { type: 'bar', data: { labels: popularList.map(p=>p[0]), datasets: [{ label: 'Кількість продажів', data: popularList.map(p=>p[1]), backgroundColor: '#0066cc' }] }, options: { responsive: true } });
-        }
-        
-        function showAdminRoutes() {
-            const container = document.getElementById("adminRoutes");
-            const routes = JSON.parse(localStorage.getItem("railway_routes") || "[]");
-            container.innerHTML = routes.map(r => `<div class="route-card"><strong>${r.from}→${r.to}</strong> ${r.time} ${r.price}грн <button onclick="deleteRoute(${r.id})" style="background:#cc0000">🗑 Видалити</button> <button onclick="editRoute(${r.id})" style="background:#ff9900">✏ Редагувати</button></div>`).join('');
-        }
-        
-        window.addRoute = function() {
-            const from=document.getElementById("newFrom").value, to=document.getElementById("newTo").value, time=document.getElementById("newTime").value, price=document.getElementById("newPrice").value;
-            if(!from||!to||!time||!price) return Swal.fire('Помилка','Заповніть всі поля','error');
-            const routes = JSON.parse(localStorage.getItem("railway_routes")||"[]");
-            const newId = routes.length ? Math.max(...routes.map(r=>r.id))+1 : 1;
-            routes.push({ id: newId, from, to, time, price: Number(price), duration: "3 год" });
-            localStorage.setItem("railway_routes", JSON.stringify(routes));
-            Swal.fire('Успіх','Маршрут додано','success').then(()=>location.reload());
+        // ========== РЕДАГУВАННЯ ==========
+        window.editRoute = function(id) {
+            const routes = getRoutes();
+            const route = routes.find(r => r.id === id);
+            if (!route) return;
+            
+            document.getElementById('formTitle').innerText = '✏ Редагувати маршрут';
+            document.getElementById('routeId').value = route.id;
+            document.getElementById('fromCity').value = route.from;
+            document.getElementById('toCity').value = route.to;
+            document.getElementById('time').value = route.time;
+            document.getElementById('price').value = route.price;
+            document.getElementById('duration').value = route.duration || '';
+            document.getElementById('distance').value = route.distance || '';
+            document.getElementById('rating').value = route.rating || 0;
+            document.getElementById('stops').value = Array.isArray(route.stops) ? route.stops.join(', ') : route.stops || '';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         
-        window.deleteRoute = function(id) {
-            Swal.fire({ title: 'Видалити?', text: 'Цю дію не можна скасувати', icon: 'warning', showCancelButton: true }).then(result => {
-                if(result.isConfirmed) {
-                    let routes = JSON.parse(localStorage.getItem("railway_routes")||"[]");
-                    routes = routes.filter(r=>r.id!==id);
-                    localStorage.setItem("railway_routes", JSON.stringify(routes));
-                    location.reload();
+        // ========== ВИДАЛЕННЯ ==========
+        window.confirmDelete = function(id) {
+            const route = getRoutes().find(r => r.id === id);
+            Swal.fire({
+                title: 'Видалити маршрут?',
+                text: `${route.from} → ${route.to}`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Так, видалити',
+                cancelButtonText: 'Скасувати'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteRoute(id);
+                    renderRoutes();
+                    Swal.fire('✅ Видалено!', 'Маршрут видалено', 'success');
                 }
             });
         };
         
-        window.editRoute = function(id) {
-            const routes = JSON.parse(localStorage.getItem("railway_routes")||"[]");
-            const route = routes.find(r=>r.id===id);
-            if(!route) return;
-            Swal.fire({ title: 'Редагувати маршрут', html: `<input id="editFrom" class="swal2-input" value="${route.from}" placeholder="Звідки"><input id="editTo" class="swal2-input" value="${route.to}" placeholder="Куди"><input id="editTime" class="swal2-input" value="${route.time}" placeholder="Час"><input id="editPrice" class="swal2-input" value="${route.price}" placeholder="Ціна">`, preConfirm: () => { route.from=document.getElementById('editFrom').value; route.to=document.getElementById('editTo').value; route.time=document.getElementById('editTime').value; route.price=Number(document.getElementById('editPrice').value); localStorage.setItem("railway_routes", JSON.stringify(routes)); Swal.fire('Оновлено!','','success').then(()=>location.reload()); } });
-        };
+        // ========== СКИДАННЯ ФОРМИ ==========
+        function resetForm() {
+            document.getElementById('formTitle').innerText = '➕ Додати новий маршрут';
+            document.getElementById('routeId').value = '';
+            document.getElementById('fromCity').value = '';
+            document.getElementById('toCity').value = '';
+            document.getElementById('time').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('duration').value = '';
+            document.getElementById('distance').value = '';
+            document.getElementById('rating').value = '0';
+            document.getElementById('stops').value = '';
+        }
         
-        function toggleTheme() { document.body.classList.toggle('dark'); localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); }
-        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        // ========== ЗБЕРЕЖЕННЯ (CREATE/UPDATE) ==========
+        document.getElementById('routeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('routeId').value;
+            const routeData = {
+                from: document.getElementById('fromCity').value,
+                to: document.getElementById('toCity').value,
+                time: document.getElementById('time').value,
+                price: parseInt(document.getElementById('price').value),
+                duration: document.getElementById('duration').value,
+                distance: document.getElementById('distance').value,
+                rating: parseFloat(document.getElementById('rating').value),
+                stops: document.getElementById('stops').value
+            };
+            
+            if (id) {
+                updateRoute(id, routeData);
+                Swal.fire('✅ Оновлено!', 'Маршрут успішно оновлено', 'success');
+            } else {
+                addRoute(routeData);
+                Swal.fire('✅ Додано!', 'Новий маршрут додано', 'success');
+            }
+            
+            resetForm();
+            renderRoutes();
+        });
         
-        showAdminInterface();
+        // ========== СКАСУВАННЯ ==========
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            resetForm();
+        });
+        
+        // ========== ТЕМНА ТЕМА ==========
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+        }
+        
+        // ========== ІНІЦІАЛІЗАЦІЯ ==========
+        renderRoutes();
     </script>
 </body>
 </html>
