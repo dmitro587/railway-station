@@ -1,1 +1,512 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Залізничний вокзал</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ========== БАНЕР-СЛАЙДЕР ========== */
+        .slider-container {
+            position: relative;
+            max-width: 100%;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        .slide {
+            min-width: 100%;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-1 { background: linear-gradient(135deg, #003366, #0066cc); }
+        .slide-2 { background: linear-gradient(135deg, #cc0000, #ff6600); }
+        .slide-3 { background: linear-gradient(135deg, #1a472a, #2e7d32); }
+        .slide h2 { font-size: 2rem; margin-bottom: 10px; }
+        .slide p { font-size: 1.2rem; margin-bottom: 20px; }
+        .slide button { background: white; color: #003366; font-size: 1rem; padding: 12px 30px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            font-size: 24px;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .slider-btn:hover { background: rgba(0,0,0,0.8); }
+        .slider-btn.prev { left: 10px; }
+        .slider-btn.next { right: 10px; }
+        .dots { text-align: center; margin-top: 10px; }
+        .dot { display: inline-block; width: 10px; height: 10px; margin: 0 5px; background: #bbb; border-radius: 50%; cursor: pointer; }
+        .dot.active { background: #0066cc; }
 
+        /* ========== ХМАРА ТЕГІВ ========== */
+        .tag-cloud {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .tag-cloud h3 { margin-bottom: 15px; }
+        .tag { display: inline-block; margin: 5px; padding: 5px 15px; background: rgba(0,102,204,0.1); border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .tag:hover { background: #0066cc; color: white; transform: scale(1.05); }
+        .tag-1 { font-size: 24px; font-weight: bold; }
+        .tag-2 { font-size: 20px; }
+        .tag-3 { font-size: 16px; }
+        .tag-4 { font-size: 14px; }
+
+        /* ========== ЖИВІ ВІДГУКИ (КАРУСЕЛЬ) ========== */
+        .reviews-carousel {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .reviews-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            scroll-behavior: smooth;
+            padding: 10px 0;
+        }
+        .review-card {
+            min-width: 280px;
+            background: rgba(0,102,204,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+        }
+        .review-text { font-style: italic; margin: 10px 0; }
+        .review-author { font-weight: bold; color: #0066cc; }
+        .review-stars { color: #ffc107; font-size: 14px; }
+
+        /* ========== ЛІЧИЛЬНИК ПАСАЖИРІВ ========== */
+        .counter-section {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #003366, #0066cc);
+            border-radius: 15px;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .counter-number { font-size: 3rem; font-weight: bold; }
+        .counter-label { font-size: 1rem; opacity: 0.9; }
+
+        /* ========== ГОДИННИК ========== */
+        .datetime-header {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 14px;
+            background: rgba(0,0,0,0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 5px;
+        }
+        .datetime-header span { margin-left: 15px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+
+        /* ========== АКЦІЇ ========== */
+        .promo-banner {
+            background: linear-gradient(135deg, #ff6600, #ff3300);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.9; } 100% { opacity: 1; } }
+        .promo-banner a { color: white; text-decoration: underline; }
+
+        /* ========== ШВИДКИЙ ПОШУК ========== */
+        .quick-search {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .quick-search input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+
+        .filter-section, .tag-cloud, .reviews-carousel, .counter-section, .promo-banner, .slider-container { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .route-card { transition: all 0.3s ease; background: var(--card); border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .route-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        @media (max-width: 768px) { .slide h2 { font-size: 1.2rem; } .slide p { font-size: 0.9rem; } .tag-1 { font-size: 18px; } .counter-number { font-size: 2rem; } .review-card { min-width: 240px; } }
+        
+        button { background: #0066cc; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #004999; }
+        .theme-btn { position: fixed; bottom: 20px; right: 20px; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; }
+        
+        body.dark { background: #1a1a2e; color: #eee; }
+        body.dark .route-card { background: #16213e; }
+        body.dark header { background: #0f3460; }
+        body.dark button { background: #e94560; }
+
+        /* Стилі для помилок форм */
+        .input-error {
+            border: 2px solid #ff4444 !important;
+            background: rgba(255, 68, 68, 0.05);
+        }
+        .field-error {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+        .status.success {
+            color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .status.error {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        /* Стани завантаження */
+        .loading-state, .empty-state, .error-state {
+            text-align: center;
+            padding: 40px;
+            border-radius: 15px;
+            background: var(--card);
+            margin: 20px 0;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0,102,204,0.3);
+            border-radius: 50%;
+            border-top-color: #0066cc;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .retry-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <h1>🚆 Залізничний вокзал</h1>
+            <div class="datetime-header">
+                <span><i class="fas fa-calendar"></i> <span id="currentDate"></span></span>
+                <span><i class="fas fa-clock"></i> <span id="currentTime"></span></span>
+            </div>
+        </div>
+        <nav>
+            <a href="index.html">🏠 Головна</a>
+            <a href="news.html">📰 Новини</a>
+            <a href="schedule.html">📅 Розклад</a>
+            <a href="map.html">🗺 Карта</a>
+            <a href="contacts.html">📞 Контакти</a>
+            <a href="login.html">🔐 Вхід</a>
+            <a href="register.html">📝 Реєстрація</a>
+            <a href="profile.html">👤 Кабінет</a>
+            <a href="admin.html">⚙ Адмін</a>
+        </nav>
+    </header>
+    <main>
+        <div class="promo-banner">
+            🎫 АКЦІЯ! 🎫 При покупці двох квитків – знижка 15%! Діє до кінця місяця. <a href="schedule.html">➡ Детальніше</a>
+        </div>
+
+        <div class="slider-container">
+            <div class="slider" id="slider">
+                <div class="slide slide-1">
+                    <h2>🎉 ЗНИЖКА 20%</h2>
+                    <p>На всі квитки до Львова!</p>
+                    <button onclick="window.location.href='schedule.html'">Придбати →</button>
+                </div>
+                <div class="slide slide-2">
+                    <h2>🚆 НОВИЙ ШВИДКІСНИЙ ПОТЯГ</h2>
+                    <p>Київ → Одеса за 4.5 години!</p>
+                    <button onclick="window.location.href='schedule.html'">Забронювати →</button>
+                </div>
+                <div class="slide slide-3">
+                    <h2>⭐ ДИТЯЧИЙ КВИТОК -50%</h2>
+                    <p>Для дітей до 12 років</p>
+                    <button onclick="window.location.href='schedule.html'">Детальніше →</button>
+                </div>
+            </div>
+            <button class="slider-btn prev" onclick="prevSlide()">❮</button>
+            <button class="slider-btn next" onclick="nextSlide()">❯</button>
+            <div class="dots" id="dots"></div>
+        </div>
+
+        <div class="quick-search">
+            <input type="text" id="quickFrom" placeholder="🚉 Звідки (напр. Київ)">
+            <input type="text" id="quickTo" placeholder="📍 Куди (напр. Львів)">
+            <button onclick="quickSearch()">🔍 Швидкий пошук</button>
+        </div>
+
+        <div class="tag-cloud">
+            <h3>🔥 ПОПУЛЯРНІ НАПРЯМКИ</h3>
+            <div>
+                <span class="tag tag-1" onclick="searchTag('Київ', 'Львів')">Київ → Львів</span>
+                <span class="tag tag-2" onclick="searchTag('Київ', 'Одеса')">Київ → Одеса</span>
+                <span class="tag tag-2" onclick="searchTag('Київ', 'Харків')">Київ → Харків</span>
+                <span class="tag tag-3" onclick="searchTag('Львів', 'Київ')">Львів → Київ</span>
+                <span class="tag tag-3" onclick="searchTag('Львів', 'Ужгород')">Львів → Ужгород</span>
+                <span class="tag tag-3" onclick="searchTag('Одеса', 'Київ')">Одеса → Київ</span>
+                <span class="tag tag-4" onclick="searchTag('Харків', 'Київ')">Харків → Київ</span>
+                <span class="tag tag-4" onclick="searchTag('Дніпро', 'Львів')">Дніпро → Львів</span>
+                <span class="tag tag-4" onclick="searchTag('Вінниця', 'Київ')">Вінниця → Київ</span>
+                <span class="tag tag-4" onclick="searchTag('Запоріжжя', 'Київ')">Запоріжжя → Київ</span>
+            </div>
+        </div>
+
+        <div class="reviews-carousel">
+            <h3>💬 ЩО КАЖУТЬ ПАСАЖИРИ</h3>
+            <div class="reviews-container" id="reviewsContainer">
+                <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Дуже зручний сайт! Купив квиток за 2 хвилини. Поїзд прийшов вчасно."</div><div class="review-author">- Андрій</div></div>
+                <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Чудовий сервіс! QR-код на квитку дуже зручний. Рекомендую!"</div><div class="review-author">- Олена</div></div>
+                <div class="review-card"><div class="review-stars">★★★★☆</div><div class="review-text">"Все сподобалось, тільки ціни трохи високі. Але сайт супер!"</div><div class="review-author">- Михайло</div></div>
+                <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Вперше купував онлайн. Дуже зручно і швидко. Дякую!"</div><div class="review-author">- Марія</div></div>
+                <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Темна тема – це щось неймовірне! Очі не втомлюються."</div><div class="review-author">- Дмитро</div></div>
+            </div>
+        </div>
+
+        <div class="counter-section">
+            <div class="counter-number" id="passengerCounter">10,000</div>
+            <div class="counter-label">🤍 щасливих пасажирів вже подорожували з нами</div>
+        </div>
+
+        <h2>⭐ Популярні маршрути</h2>
+        <div id="popular-routes" data-popular-routes></div>
+        <div id="userStatus" class="route-card" data-user-status></div>
+    </main>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
+    <script>
+        // Supabase клієнт
+        const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
+        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ========== ГОДИННИК ТА ДАТА ==========
+        function updateDateTime() {
+            const now = new Date();
+            const dateEl = document.getElementById('currentDate');
+            const timeEl = document.getElementById('currentTime');
+            if (dateEl) dateEl.innerText = now.toLocaleDateString('uk-UA');
+            if (timeEl) timeEl.innerText = now.toLocaleTimeString('uk-UA');
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // ========== БАНЕР-СЛАЙДЕР ==========
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dotsContainer = document.getElementById('dots');
+        
+        function createDots() {
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            slides.forEach((_, i) => {
+                const dot = document.createElement('span');
+                dot.className = 'dot';
+                dot.onclick = () => goToSlide(i);
+                dotsContainer.appendChild(dot);
+            });
+            updateDots();
+        }
+        
+        function updateDots() {
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+        }
+        
+        function updateSlider() {
+            const slider = document.getElementById('slider');
+            if (slider) slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            updateDots();
+        }
+        
+        window.nextSlide = function() { 
+            currentSlide = (currentSlide + 1) % slides.length; 
+            updateSlider(); 
+        };
+        window.prevSlide = function() { 
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length; 
+            updateSlider(); 
+        };
+        window.goToSlide = function(index) { 
+            currentSlide = index; 
+            updateSlider(); 
+        };
+        createDots();
+        setInterval(() => { nextSlide(); }, 5000);
+
+        // ========== ШВИДКИЙ ПОШУК ==========
+        window.quickSearch = function() {
+            const from = document.getElementById('quickFrom')?.value;
+            const to = document.getElementById('quickTo')?.value;
+            if(from && to) {
+                localStorage.setItem('search_from', from);
+                localStorage.setItem('search_to', to);
+                window.location.href = 'schedule.html';
+            } else {
+                Swal.fire('Введіть міста', 'Будь ласка, введіть "Звідки" та "Куди"', 'info');
+            }
+        };
+
+        window.searchTag = function(from, to) {
+            localStorage.setItem('search_from', from);
+            localStorage.setItem('search_to', to);
+            window.location.href = 'schedule.html';
+        };
+
+        // ========== ЛІЧИЛЬНИК ПАСАЖИРІВ ==========
+        function updatePassengerCounter() {
+            const stats = JSON.parse(localStorage.getItem('ticket_stats') || '[]');
+            let count = stats.length + 10000;
+            const counterEl = document.getElementById('passengerCounter');
+            if (counterEl) counterEl.innerText = count.toLocaleString();
+        }
+        updatePassengerCounter();
+
+        // ========== СТАНИ ЗАВАНТАЖЕННЯ ==========
+        function showState(container, state, message = '') {
+            if (!container) return;
+            if (state === 'loading') {
+                container.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><p>⏳ Завантаження маршрутів...</p></div>`;
+            } else if (state === 'empty') {
+                container.innerHTML = `<div class="empty-state"><p>📭 Наразі немає доступних маршрутів</p></div>`;
+            } else if (state === 'error') {
+                container.innerHTML = `<div class="error-state"><p>❌ ${message || 'Помилка завантаження'}</p><button class="retry-btn" onclick="location.reload()">🔄 Спробувати знову</button></div>`;
+            }
+        }
+
+        // ========== ОТРИМАННЯ МАРШРУТІВ З SUPABASE ==========
+        async function fetchRoutes() {
+            const { data, error } = await supabase
+                .from('routes')
+                .select('*')
+                .order('id');
+            
+            if (error) {
+                console.error('Supabase error:', error);
+                throw new Error(error.message);
+            }
+            return data || [];
+        }
+
+        // ========== ВІДОБРАЖЕННЯ МАРШРУТІВ ==========
+        async function displayRoutes() {
+            const container = document.querySelector('[data-popular-routes]');
+            if (!container) return;
+            
+            showState(container, 'loading');
+            
+            try {
+                const routes = await fetchRoutes();
+                
+                if (!routes || routes.length === 0) {
+                    showState(container, 'empty');
+                    return;
+                }
+                
+                container.innerHTML = "";
+                routes.slice(0, 6).forEach(route => {
+                    const div = document.createElement("div");
+                    div.className = "route-card";
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong>${escapeHtml(route.from_city)} → ${escapeHtml(route.to_city)}</strong><br>
+                                🕐 ${escapeHtml(route.time)} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
+                                <span style="color:#ffc107;">${'⭐'.repeat(Math.floor(route.rating || 0))}</span>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <button onclick="alert('Функція покупки в розробці')">🎫 Купити</button>
+                            <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Помилка:', error);
+                showState(container, 'error', error.message);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // ========== СТАТУС КОРИСТУВАЧА ==========
+        function showUserStatus() {
+            const user = JSON.parse(localStorage.getItem('current_user'));
+            const statusDiv = document.querySelector('[data-user-status]');
+            if (!statusDiv) return;
+            if (user) {
+                statusDiv.innerHTML = `✅ Ви увійшли як ${escapeHtml(user.name)} | <a href="profile.html">Кабінет</a> | <button onclick="logout()">Вийти</button>`;
+            } else {
+                statusDiv.innerHTML = `🔒 Не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Реєстрація</a>`;
+            }
+        }
+
+        window.logout = function() {
+            localStorage.removeItem('current_user');
+            location.reload();
+        };
+
+        // ========== ТЕМНА ТЕМА ==========
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+        }
+
+        // ========== ЗАПУСК ==========
+        displayRoutes();
+        showUserStatus();
+    </script>
+</body>
+</html>
