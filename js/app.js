@@ -2,6 +2,7 @@
 import { initTheme, toggleTheme, updateThemeButton } from './ui/theme.js';
 import { getTicketStats } from './services/storage.js';
 import { getCurrentUser, logoutUser } from './services/auth.js';
+import { fetchRoutesFromSupabase } from './services/supabase-client.js';
 
 // ========== СТАНИ ЗАВАНТАЖЕННЯ ==========
 const STATES = {
@@ -125,59 +126,60 @@ function updatePassengerCounter() {
     if (counterEl) counterEl.innerText = count.toLocaleString();
 }
 
-// ========== МАРШРУТИ ==========
-const routes = [
-    { id:1, from:"Київ", to:"Львів", price:450, time:"08:00", duration:"5 год", rating:4.5, stops:["Житомир", "Рівне"] },
-    { id:2, from:"Київ", to:"Одеса", price:420, time:"09:30", duration:"4.5 год", rating:4.8, stops:["Біла Церква", "Умань"] },
-    { id:3, from:"Київ", to:"Харків", price:380, time:"07:15", duration:"4.5 год", rating:4.2, stops:["Полтава"] },
-    { id:4, from:"Київ", to:"Дніпро", price:350, time:"10:00", duration:"4 год", rating:4.3, stops:["Кременчук"] },
-    { id:5, from:"Київ", to:"Запоріжжя", price:400, time:"11:30", duration:"5 год", rating:4.0, stops:["Кременчук", "Дніпро"] },
-    { id:6, from:"Львів", to:"Київ", price:460, time:"07:00", duration:"5.5 год", rating:4.7, stops:["Рівне", "Житомир"] }
-];
-
-function displayRoutes() {
+// ========== ВІДОБРАЖЕННЯ МАРШРУТІВ З SUPABASE ==========
+async function displayRoutes() {
     const container = document.querySelector('[data-popular-routes]');
     if(!container) return;
     
-    // Показуємо стан завантаження
     showState(container, 'loading');
     
-    // Імітуємо завантаження (можна замінити на реальний fetch)
-    setTimeout(() => {
-        try {
-            if (!routes || routes.length === 0) {
-                showState(container, 'empty');
-                return;
-            }
-            
-            container.innerHTML = "";
-            routes.forEach(route => {
-                const div = document.createElement("div");
-                div.className = "route-card";
-                div.innerHTML = `
-                    <div style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleStops(${route.id})">
-                        <div>
-                            <strong>${route.from} → ${route.to}</strong><br>
-                            🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration}<br>
-                            <span style="color:#ffc107;">${'⭐'.repeat(Math.floor(route.rating))} ${route.rating}</span>
-                        </div>
-                        <button onclick="event.stopPropagation(); toggleStops(${route.id})" style="background:none; border:none;">▼ Зупинки</button>
-                    </div>
-                    <div id="stops-${route.id}" style="display:none; margin-top:10px; padding:10px; background:rgba(0,0,0,0.05); border-radius:8px;">
-                        <strong>📍 Зупинки:</strong> ${route.stops.join(' → ')}
-                    </div>
-                    <div style="margin-top:10px;">
-                        <button onclick="buyTicket(${route.id})">🎫 Купити</button>
-                        <button onclick="toggleFavorite(${route.id})">⭐ Вибране</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        } catch (error) {
-            console.error('Помилка рендеру:', error);
-            showState(container, 'error', 'Не вдалося завантажити маршрути');
+    try {
+        // Отримуємо маршрути з Supabase
+        const routes = await fetchRoutesFromSupabase();
+        
+        if (!routes || routes.length === 0) {
+            showState(container, 'empty');
+            return;
         }
-    }, 500); // Імітація затримки завантаження
+        
+        container.innerHTML = "";
+        routes.slice(0, 6).forEach(route => {
+            const div = document.createElement("div");
+            div.className = "route-card";
+            div.innerHTML = `
+                <div style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleStops(${route.id})">
+                    <div>
+                        <strong>${escapeHtml(route.from_city)} → ${escapeHtml(route.to_city)}</strong><br>
+                        🕐 ${escapeHtml(route.time)} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
+                        <span style="color:#ffc107;">${'⭐'.repeat(Math.floor(route.rating || 0))}</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); toggleStops(${route.id})" style="background:none; border:none;">▼ Зупинки</button>
+                </div>
+                <div id="stops-${route.id}" style="display:none; margin-top:10px; padding:10px; background:rgba(0,0,0,0.05); border-radius:8px;">
+                    <strong>📍 Зупинки:</strong> ${Array.isArray(route.stops) ? route.stops.map(s => escapeHtml(s)).join(' → ') : 'без зупинок'}
+                </div>
+                <div style="margin-top:10px;">
+                    <button onclick="buyTicket(${route.id})">🎫 Купити</button>
+                    <button onclick="toggleFavorite(${route.id})">⭐ Вибране</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    } catch (error) {
+        console.error('Помилка завантаження маршрутів:', error);
+        showState(container, 'error', error.message);
+    }
+}
+
+// ========== ДОПОМІЖНІ ФУНКЦІЇ ==========
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
 }
 
 window.toggleStops = function(id) { 
@@ -193,13 +195,10 @@ window.buyTicket = function(routeId) {
         });
         return; 
     }
-    const route = routes.find(r => r.id === routeId);
     Swal.fire({ 
-        title: `Квиток ${route.from} → ${route.to}`, 
-        text: `Сума: ${route.price} грн`, 
-        confirmButtonText: '✅ Купити' 
-    }).then(() => {
-        Swal.fire('✅ Успіх!', 'Квиток куплено!', 'success');
+        title: 'Квиток', 
+        text: 'Функція покупки в розробці', 
+        confirmButtonText: '✅ OK' 
     });
 };
 
@@ -212,7 +211,7 @@ function showUserStatus() {
     const statusDiv = document.querySelector('[data-user-status]');
     if(!statusDiv) return;
     statusDiv.innerHTML = user ? 
-        `✅ Ви увійшли як ${user.name} | <a href="profile.html">Кабінет</a> | <button onclick="logout()">Вийти</button>` : 
+        `✅ Ви увійшли як ${escapeHtml(user.name)} | <a href="profile.html">Кабінет</a> | <button onclick="logout()">Вийти</button>` : 
         `🔒 Не увійшли | <a href="login.html">Увійти</a> | <a href="register.html">Реєстрація</a>`; 
 }
 
@@ -236,7 +235,7 @@ function init() {
     // Слайдер
     initSlider();
     
-    // Маршрути (з станом завантаження)
+    // Маршрути (з Supabase)
     displayRoutes();
     
     // Статус користувача
