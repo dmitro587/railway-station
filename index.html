@@ -147,9 +147,20 @@
         /* Додаткові стилі */
         .filter-section, .tag-cloud, .reviews-carousel, .counter-section, .promo-banner, .slider-container { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .route-card { transition: all 0.3s ease; }
+        .route-card { transition: all 0.3s ease; background: var(--card); border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .route-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         @media (max-width: 768px) { .slide h2 { font-size: 1.2rem; } .slide p { font-size: 0.9rem; } .tag-1 { font-size: 18px; } .counter-number { font-size: 2rem; } .review-card { min-width: 240px; } }
+        
+        /* Стилі для кнопок */
+        button { background: #0066cc; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #004999; }
+        .theme-btn { position: fixed; bottom: 20px; right: 20px; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; }
+        
+        /* Темна тема */
+        body.dark { background: #1a1a2e; color: #eee; }
+        body.dark .route-card { background: #16213e; }
+        body.dark header { background: #0f3460; }
+        body.dark button { background: #e94560; }
     </style>
 </head>
 <body>
@@ -207,7 +218,7 @@
         <div class="quick-search">
             <input type="text" id="quickFrom" placeholder="🚉 Звідки (напр. Київ)">
             <input type="text" id="quickTo" placeholder="📍 Куди (напр. Львів)">
-            <button onclick="quickSearch()" style="padding: 10px 20px;">🔍 Швидкий пошук</button>
+            <button onclick="quickSearch()">🔍 Швидкий пошук</button>
         </div>
 
         <!-- Хмара тегів (популярні напрямки) -->
@@ -252,41 +263,5 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script type="module" src="js/app.js"></script>
-    <script>
-    // Екстрений рендер маршрутів (якщо модуль не спрацював)
-    setTimeout(function() {
-        const container = document.getElementById('popular-routes');
-        if (container && container.children.length === 0) {
-            const routes = [
-                { from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год" },
-                { from: "Київ", to: "Одеса", time: "09:30", price: 420, duration: "4.5 год" },
-                { from: "Київ", to: "Харків", time: "07:15", price: 380, duration: "4.5 год" },
-                { from: "Київ", to: "Дніпро", time: "10:00", price: 350, duration: "4 год" },
-                { from: "Київ", to: "Запоріжжя", time: "11:30", price: 400, duration: "5 год" },
-                { from: "Львів", to: "Київ", time: "07:00", price: 460, duration: "5.5 год" }
-            ];
-            
-            container.innerHTML = routes.map(r => `
-                <div class="route-card">
-                    <strong>${r.from} → ${r.to}</strong><br>
-                    🕐 ${r.time} | 💰 ${r.price} грн | ⏱ ${r.duration}<br>
-                    <button onclick="alert('Купівля квитка')">🎫 Купити</button>
-                    <button onclick="alert('Додано до вибраного')">⭐ Вибране</button>
-                </div>
-            `).join('');
-        }
-    }, 100);
-    
-    // Відновлення годинника
-    function updateDateTime() {
-        const now = new Date();
-        const dateEl = document.getElementById('currentDate');
-        const timeEl = document.getElementById('currentTime');
-        if (dateEl) dateEl.innerText = now.toLocaleDateString('uk-UA');
-        if (timeEl) timeEl.innerText = now.toLocaleTimeString('uk-UA');
-    }
-    setInterval(updateDateTime, 1000);
-    updateDateTime();
-</script>
 </body>
 </html>
