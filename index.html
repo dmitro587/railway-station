@@ -252,5 +252,41 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script type="module" src="js/app.js"></script>
+    <script>
+    // Екстрений рендер маршрутів (якщо модуль не спрацював)
+    setTimeout(function() {
+        const container = document.getElementById('popular-routes');
+        if (container && container.children.length === 0) {
+            const routes = [
+                { from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год" },
+                { from: "Київ", to: "Одеса", time: "09:30", price: 420, duration: "4.5 год" },
+                { from: "Київ", to: "Харків", time: "07:15", price: 380, duration: "4.5 год" },
+                { from: "Київ", to: "Дніпро", time: "10:00", price: 350, duration: "4 год" },
+                { from: "Київ", to: "Запоріжжя", time: "11:30", price: 400, duration: "5 год" },
+                { from: "Львів", to: "Київ", time: "07:00", price: 460, duration: "5.5 год" }
+            ];
+            
+            container.innerHTML = routes.map(r => `
+                <div class="route-card">
+                    <strong>${r.from} → ${r.to}</strong><br>
+                    🕐 ${r.time} | 💰 ${r.price} грн | ⏱ ${r.duration}<br>
+                    <button onclick="alert('Купівля квитка')">🎫 Купити</button>
+                    <button onclick="alert('Додано до вибраного')">⭐ Вибране</button>
+                </div>
+            `).join('');
+        }
+    }, 100);
+    
+    // Відновлення годинника
+    function updateDateTime() {
+        const now = new Date();
+        const dateEl = document.getElementById('currentDate');
+        const timeEl = document.getElementById('currentTime');
+        if (dateEl) dateEl.innerText = now.toLocaleDateString('uk-UA');
+        if (timeEl) timeEl.innerText = now.toLocaleTimeString('uk-UA');
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+</script>
 </body>
 </html>
