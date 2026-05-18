@@ -13,7 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
-        /* ========== БАЗОВІ СТИЛІ ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -159,154 +158,183 @@
             border: 1px solid var(--border);
         }
         
-        @media (max-width: 768px) { 
-            th, td { font-size: 12px; padding: 8px; } 
-            .search-box { flex-direction: column; } 
-            .autocomplete-container { width: 100%; }
-        }
         /* ========== ФІЛЬТРИ ТА СОРТУВАННЯ ========== */
-.filter-panel {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 30px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: flex-end;
-}
-.filter-group {
-    flex: 1;
-    min-width: 150px;
-}
-.filter-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 12px;
-    opacity: 0.8;
-}
-.price-slider {
-    width: 100%;
-    margin: 10px 0;
-}
-.price-values {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-}
-.sort-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.sort-btn {
-    background: rgba(0,102,204,0.1);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.sort-btn.active {
-    background: #0066cc;
-    color: white;
-    border-color: #0066cc;
-}
-.sort-btn:hover {
-    background: #0066cc;
-    color: white;
-}
-.reset-btn {
-    background: #ff9800;
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-}
-.reset-btn:hover {
-    background: #e68900;
-}
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 30px;
-    flex-wrap: wrap;
-}
-.page-btn {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.page-btn.active {
-    background: #0066cc;
-    color: white;
-    border-color: #0066cc;
-}
-.page-btn:hover:not(.active) {
-    background: rgba(0,102,204,0.1);
-}
+        .filter-panel {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .price-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .price-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .sort-btn {
+            background: rgba(0,102,204,0.1);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .sort-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        .sort-btn:hover {
+            background: #0066cc;
+            color: white;
+        }
+        .reset-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .reset-btn:hover {
+            background: #e68900;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .page-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        .page-btn:hover:not(.active) {
+            background: rgba(0,102,204,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            th, td { font-size: 12px; padding: 8px; }
+            .search-box { flex-direction: column; }
+            .autocomplete-container { width: 100%; }
+            .filter-panel { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1> Розклад поїздів України</h1>
+        <h1>🚆 Розклад поїздів України</h1>
         <nav>
-            <a href="#"> Головна</a>
-            <a href="#"> Новини</a>
-            <a href="#"> Розклад</a>
-            <a href="#"> Карта</a>
-            <a href="#"> Контакти</a>
-            <a href="#"> Вхід</a>
-            <a href="#"> Реєстрація</a>
-            <a href="#"> Кабінет</a>
-            <a href="#"> Адмін</a>
+            <a href="#">🏠 Головна</a>
+            <a href="#">📰 Новини</a>
+            <a href="#">📅 Розклад</a>
+            <a href="#">🗺 Карта</a>
+            <a href="#">📞 Контакти</a>
+            <a href="#">🔐 Вхід</a>
+            <a href="#">📝 Реєстрація</a>
+            <a href="#">👤 Кабінет</a>
+            <a href="#">⚙ Адмін</a>
         </nav>
     </header>
 
     <main>
-        <h2> Пошук квитків</h2>
+        <h2>🔍 Пошук квитків</h2>
         <div class="search-box">
             <div class="autocomplete-container">
-                <input type="text" id="searchFrom" class="autocomplete-input" placeholder=" Звідки (напр. Київ)" autocomplete="off">
+                <input type="text" id="searchFrom" class="autocomplete-input" placeholder="🚉 Звідки (напр. Київ)" autocomplete="off">
                 <div id="fromAutocomplete" class="autocomplete-list"></div>
             </div>
             <div class="autocomplete-container">
-                <input type="text" id="searchTo" class="autocomplete-input" placeholder=" Куди (напр. Львів)" autocomplete="off">
+                <input type="text" id="searchTo" class="autocomplete-input" placeholder="📍 Куди (напр. Львів)" autocomplete="off">
                 <div id="toAutocomplete" class="autocomplete-list"></div>
             </div>
-            <button onclick="searchRoutes()"> Шукати</button>
+            <button onclick="searchRoutes()">🔍 Шукати</button>
             <button onclick="clearSearch()" style="background: #666;">🗑 Очистити</button>
+        </div>
+
+        <!-- Панель фільтрів та сортування -->
+        <div class="filter-panel">
+            <div class="filter-group">
+                <label>💰 Фільтр за ціною (грн)</label>
+                <input type="range" id="priceFilter" min="0" max="1000" step="50" value="1000" class="price-slider" oninput="updatePriceValue()">
+                <div class="price-values">
+                    <span>0 грн</span>
+                    <span id="priceValue">1000 грн</span>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>📊 Сортування</label>
+                <div class="sort-buttons">
+                    <button class="sort-btn active" data-sort="default">За замовчуванням</button>
+                    <button class="sort-btn" data-sort="price-asc">💰 Ціна (спочатку дешевші)</button>
+                    <button class="sort-btn" data-sort="price-desc">💰 Ціна (спочатку дорожчі)</button>
+                    <button class="sort-btn" data-sort="time">🕐 Час</button>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button class="reset-btn" onclick="resetFilters()">🔄 Скинути фільтри</button>
+            </div>
         </div>
         
         <div id="searchResults"></div>
         
         <div class="tab-container">
             <div class="tab active" onclick="switchTab('domestic')">🇺🇦 Внутрішні маршрути</div>
-            <div class="tab" onclick="switchTab('international')"> Міжнародні маршрути</div>
+            <div class="tab" onclick="switchTab('international')">🌍 Міжнародні маршрути</div>
         </div>
         
         <div id="domesticTab" class="tab-content active">
+            <h2>📋 Всі маршрути (<span id="routesCount">0</span> напрямків)</h2>
             <div style="overflow-x: auto;">
                 <table id="routesTable">
                     <thead>
-                        <tr><th> Звідки</th><th> Куди</th><th> Час</th><th> Дорослий</th><th> Дитячий</th><th>⏱ Тривалість</th><th> Відстань</th><th> Погода</th><th> Дія</th>
+                        <tr><th>🚉 Звідки</th><th>📍 Куди</th><th>⏰ Час</th><th>💰 Дорослий</th><th>🧒 Дитячий</th><th>⏱ Тривалість</th><th>📏 Відстань</th><th>🌡 Погода</th><th>🎫 Дія</th>
                     </thead>
                     <tbody id="routesList"></tbody>
                 </table>
             </div>
+            <div class="pagination" id="pagination"></div>
         </div>
         
         <div id="internationalTab" class="tab-content">
             <div style="overflow-x: auto;">
                 <table id="internationalTable">
                     <thead>
-                        <tr><th> Звідки</th><th> Куди</th><th> Час</th><th> Дорослий</th><th> Дитячий</th><th> Тривалість</th><th> Відстань</th><th> Віза</th><th> Дія</th>
+                        <tr><th>🚉 Звідки</th><th>🌍 Куди</th><th>⏰ Час</th><th>💰 Дорослий</th><th>🧒 Дитячий</th><th>⏱ Тривалість</th><th>📏 Відстань</th><th>🛂 Віза</th><th>🎫 Дія</th>
                     </thead>
                     <tbody id="internationalList"></tbody>
                 </table>
@@ -314,11 +342,11 @@
         </div>
         
         <div style="margin-top: 20px; text-align: center;">
-            <p> Дитячий квиток (до 12 років) – <strong style="color:#ffc107;">50% знижка</strong></p>
+            <p>🧒 Дитячий квиток (до 12 років) – <strong style="color:#ffc107;">50% знижка</strong></p>
         </div>
     </main>
 
-    <button class="theme-btn" onclick="toggleTheme()"></button>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
         // ========== ДАНІ ==========
@@ -333,7 +361,7 @@
         ];
         
         let routes = [
-             { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год", distance: "540 км" },
+            { id: 1, from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год", distance: "540 км" },
             { id: 2, from: "Київ", to: "Одеса", time: "09:30", price: 420, duration: "4.5 год", distance: "480 км" },
             { id: 3, from: "Київ", to: "Харків", time: "07:15", price: 380, duration: "4.5 год", distance: "470 км" },
             { id: 4, from: "Київ", to: "Дніпро", time: "10:00", price: 350, duration: "4 год", distance: "440 км" },
@@ -386,7 +414,7 @@
         ];
 
         let internationalRoutes = [
-          { id: 101, from: "Київ", to: "Варшава", time: "06:00", price: 1200, duration: "10 год", distance: "800 км", visa: "Шенген" },
+            { id: 101, from: "Київ", to: "Варшава", time: "06:00", price: 1200, duration: "10 год", distance: "800 км", visa: "Шенген" },
             { id: 102, from: "Київ", to: "Прага", time: "07:30", price: 1500, duration: "14 год", distance: "1200 км", visa: "Шенген" },
             { id: 103, from: "Київ", to: "Будапешт", time: "09:00", price: 1350, duration: "12 год", distance: "1050 км", visa: "Шенген" },
             { id: 104, from: "Київ", to: "Відень", time: "08:15", price: 1450, duration: "13 год", distance: "1150 км", visa: "Шенген" },
@@ -405,6 +433,13 @@
         
         const promoCodes = { 'WELCOME10': 10, 'RAILWAY15': 15, 'STUDENT20': 20, 'FAMILY25': 25, 'HAPPY30': 30 };
         
+        // ========== ЗМІННІ ДЛЯ ФІЛЬТРІВ ТА ПАГІНАЦІЇ ==========
+        let currentDisplayRoutes = [...routes];
+        let currentSort = 'default';
+        let currentPriceMax = 1000;
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        
         // ========== ФУНКЦІЇ ==========
         
         function switchTab(tab) {
@@ -413,7 +448,7 @@
             if(tab === 'domestic') {
                 document.querySelector('.tab:first-child').classList.add('active');
                 document.getElementById('domesticTab').classList.add('active');
-                showAllRoutes();
+                updateFilters();
             } else {
                 document.querySelector('.tab:last-child').classList.add('active');
                 document.getElementById('internationalTab').classList.add('active');
@@ -423,34 +458,109 @@
         
         async function getWeather(city) {
             const weatherMap = {
-                "Київ": " +22°C", "Львів": " +18°C", "Одеса": " +24°C", "Харків": " +20°C",
-                "Дніпро": " +21°C", "Запоріжжя": " +23°C", "Варшава": " +18°C", "Прага": " +16°C"
+                "Київ": "☀️ +22°C", "Львів": "⛅ +18°C", "Одеса": "🌊 +24°C", "Харків": "☁️ +20°C",
+                "Дніпро": "🌤️ +21°C", "Запоріжжя": "☀️ +23°C", "Варшава": "🌤️ +18°C", "Прага": "⛅ +16°C"
             };
-            return weatherMap[city] || " +15°C";
+            return weatherMap[city] || "🌡️ +15°C";
         }
         
-        function showAllRoutes() {
-            const tbody = document.getElementById("routesList");
-            if(!tbody) return;
-            tbody.innerHTML = routes.map(r => {
+        // ========== ФІЛЬТРИ ТА СОРТУВАННЯ ==========
+        function updateFilters() {
+            let filtered = [...routes];
+            filtered = filtered.filter(r => r.price <= currentPriceMax);
+            
+            if (currentSort === 'price-asc') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (currentSort === 'price-desc') {
+                filtered.sort((a, b) => b.price - a.price);
+            } else if (currentSort === 'time') {
+                filtered.sort((a, b) => a.time.localeCompare(b.time));
+            } else {
+                filtered.sort((a, b) => a.id - b.id);
+            }
+            
+            currentDisplayRoutes = filtered;
+            document.getElementById('routesCount').innerText = currentDisplayRoutes.length;
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+        
+        function updatePriceValue() {
+            currentPriceMax = parseInt(document.getElementById('priceFilter').value);
+            document.getElementById('priceValue').innerText = currentPriceMax + ' грн';
+            updateFilters();
+        }
+        
+        function resetFilters() {
+            currentSort = 'default';
+            currentPriceMax = 1000;
+            document.getElementById('priceFilter').value = 1000;
+            document.getElementById('priceValue').innerText = '1000 грн';
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.sort === 'default') btn.classList.add('active');
+            });
+            updateFilters();
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('routesList');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageRoutes = currentDisplayRoutes.slice(start, end);
+            
+            if (pageRoutes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center">📭 Немає маршрутів</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = pageRoutes.map(r => {
                 const childPrice = Math.round(r.price * 0.5);
                 return `<tr>
                     <td><strong>${r.from}</strong></td>
                     <td><strong>${r.to}</strong></td>
-                    <td> ${r.time}</td>
-                    <td> ${r.price} грн</td>
-                    <td> ${childPrice} грн <span class="child-badge">-50%</span></td>
-                    <td> ${r.duration}</td>
-                    <td> ${r.distance}</td>
-                    <td><span class="weather-widget" id="weather-${r.id}"> завантаження...</span></td>
-                    <td><button class="buy-btn" onclick='buyTicket(${r.id}, false)'> Купити</button>
-                    <button class="notify-btn" onclick='subscribeToDiscount(${r.id}, false)'> Стежити</button></td>
+                    <td>🕐 ${r.time}</td>
+                    <td>💰 ${r.price} грн</td>
+                    <td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td>
+                    <td>⏱ ${r.duration}</td>
+                    <td>📏 ${r.distance}</td>
+                    <td><span class="weather-widget" id="weather-${r.id}">🌡️...</span></td>
+                    <td>
+                        <button class="buy-btn" onclick='buyTicket(${r.id}, false)'>🎫 Купити</button>
+                        <button class="notify-btn" onclick='subscribeToDiscount(${r.id}, false)'>🔔 Стежити</button>
+                    </td>
                 </tr>`;
             }).join('');
-            routes.forEach(async r => {
+            
+            pageRoutes.forEach(async r => {
                 const span = document.getElementById(`weather-${r.id}`);
                 if(span) span.innerHTML = await getWeather(r.to);
             });
+        }
+        
+        function renderPagination() {
+            const totalPages = Math.ceil(currentDisplayRoutes.length / itemsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            if (!paginationDiv) return;
+            if (totalPages <= 1) { paginationDiv.innerHTML = ''; return; }
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            paginationDiv.innerHTML = html;
+        }
+        
+        window.goToPage = function(page) {
+            currentPage = page;
+            renderTable();
+            renderPagination();
+        };
+        
+        function showAllRoutes() {
+            const countSpan = document.getElementById('routesCount');
+            if(countSpan) countSpan.innerText = routes.length;
+            updateFilters();
         }
         
         function showInternationalRoutes() {
@@ -460,15 +570,15 @@
                 const childPrice = Math.round(r.price * 0.5);
                 return `<tr>
                     <td><strong>${r.from}</strong> <span class="international-badge">🇺🇦</span></td>
-                    <td><strong>${r.to}</strong> <span class="international-badge"></span></td>
-                    <td> ${r.time}</td>
-                    <td> ${r.price} грн</td>
-                    <td> ${childPrice} грн <span class="child-badge">-50%</span></td>
-                    <td> ${r.duration}</td>
-                    <td> ${r.distance}</td>
-                    <td> ${r.visa}</td>
-                    <td><button class="buy-btn" onclick='buyTicket(${r.id}, true)'> Купити</button>
-                    <button class="notify-btn" onclick='subscribeToDiscount(${r.id}, true)'> Стежити</button></td>
+                    <td><strong>${r.to}</strong> <span class="international-badge">🌍</span></td>
+                    <td>🕐 ${r.time}</td>
+                    <td>💰 ${r.price} грн</td>
+                    <td>🧒 ${childPrice} грн <span class="child-badge">-50%</span></td>
+                    <td>⏱ ${r.duration}</td>
+                    <td>📏 ${r.distance}</td>
+                    <td>🛂 ${r.visa}</td>
+                    <td><button class="buy-btn" onclick='buyTicket(${r.id}, true)'>🎫 Купити</button>
+                    <button class="notify-btn" onclick='subscribeToDiscount(${r.id}, true)'>🔔 Стежити</button></td>
                 </tr>`;
             }).join('');
         }
@@ -505,7 +615,6 @@
                 return; 
             }
             
-            // Зберігаємо в історію
             if(from || to) {
                 const search = { from: from || '', to: to || '', date: new Date().toLocaleString() };
                 searchHistory = [search, ...searchHistory.filter(s => s.from === from && s.to === to)].slice(0, 5);
@@ -517,21 +626,21 @@
             let internationalFound = internationalRoutes.filter(r => (!from || r.from.toLowerCase().includes(from)) && (!to || r.to.toLowerCase().includes(to)));
             
             if(domesticFound.length === 0 && internationalFound.length === 0) {
-                resultsDiv.innerHTML = '<div class="route-card" style="text-align: center;"><p> Маршрутів не знайдено</p></div>';
+                resultsDiv.innerHTML = '<div class="route-card" style="text-align: center;"><p>❌ Маршрутів не знайдено</p></div>';
             } else {
                 let html = '';
                 if(domesticFound.length > 0) {
                     html += `<h3>🇺🇦 Внутрішні маршрути (${domesticFound.length}):</h3>`;
                     html += domesticFound.map(r => { 
                         const cp = Math.round(r.price * 0.5); 
-                        return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br> ${r.time} |  ${r.price} грн |  ${cp} грн<br><button class="buy-btn" onclick='buyTicket(${r.id}, false)'> Купити</button></div>`; 
+                        return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 ${r.price} грн | 🧒 ${cp} грн<br><button class="buy-btn" onclick='buyTicket(${r.id}, false)'>🎫 Купити</button></div>`; 
                     }).join('');
                 }
                 if(internationalFound.length > 0) {
-                    html += `<h3> Міжнародні маршрути (${internationalFound.length}):</h3>`;
+                    html += `<h3>🌍 Міжнародні маршрути (${internationalFound.length}):</h3>`;
                     html += internationalFound.map(r => { 
                         const cp = Math.round(r.price * 0.5); 
-                        return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br> ${r.time} |  ${r.price} грн |  ${cp} грн |  ${r.visa}<br><button class="buy-btn" onclick='buyTicket(${r.id}, true)'> Купити</button></div>`; 
+                        return `<div class="route-card"><strong>${r.from} → ${r.to}</strong><br>🕐 ${r.time} | 💰 ${r.price} грн | 🧒 ${cp} грн | 🛂 ${r.visa}<br><button class="buy-btn" onclick='buyTicket(${r.id}, true)'>🎫 Купити</button></div>`; 
                     }).join('');
                 }
                 resultsDiv.innerHTML = html;
@@ -555,7 +664,7 @@
             }
             priceAlerts.push(routeId);
             localStorage.setItem('price_alerts', JSON.stringify(priceAlerts));
-            Swal.fire(' Підписка оформлена!', `Ми повідомимо вас про знижки на ${route.from} → ${route.to}`, 'success');
+            Swal.fire('✅ Підписка оформлена!', `Ми повідомимо вас про знижки на ${route.from} → ${route.to}`, 'success');
         }
         
         function getAvailableSeats() {
@@ -571,13 +680,13 @@
         
         function applyPromoCode() {
             const code = document.getElementById('promoInput')?.value.toUpperCase();
-            if(!code) { Swal.fire(' Помилка', 'Введіть промокод', 'error'); return; }
+            if(!code) { Swal.fire('❌ Помилка', 'Введіть промокод', 'error'); return; }
             if(promoCodes[code]) {
                 localStorage.setItem('active_promo', JSON.stringify({ code, discount: promoCodes[code] }));
-                Swal.fire(' Промокод активовано!', `Ви отримали знижку ${promoCodes[code]}% на наступну покупку!`, 'success');
+                Swal.fire('✅ Промокод активовано!', `Ви отримали знижку ${promoCodes[code]}% на наступну покупку!`, 'success');
                 document.getElementById('promoInput').value = '';
             } else {
-                Swal.fire(' Невірний промокод', 'Спробуйте: WELCOME10, RAILWAY15, STUDENT20, FAMILY25, HAPPY30', 'error');
+                Swal.fire('❌ Невірний промокод', 'Спробуйте: WELCOME10, RAILWAY15, STUDENT20, FAMILY25, HAPPY30', 'error');
             }
         }
         
@@ -593,11 +702,11 @@
             if(!historyContainer && searchHistory.length > 0) {
                 const searchBox = document.querySelector('.search-box');
                 if(searchBox && searchBox.parentNode) {
-                    const historyHtml = `<div id="searchHistoryContainer" class="search-history"><span> Нещодавні пошуки:</span> ${searchHistory.map(s => `<span class="history-item" onclick="applyHistorySearch('${s.from}', '${s.to}')">${s.from || '?'} → ${s.to || '?'}</span>`).join('')}</div>`;
+                    const historyHtml = `<div id="searchHistoryContainer" class="search-history"><span>📜 Нещодавні пошуки:</span> ${searchHistory.map(s => `<span class="history-item" onclick="applyHistorySearch('${s.from}', '${s.to}')">${s.from || '?'} → ${s.to || '?'}</span>`).join('')}</div>`;
                     searchBox.insertAdjacentHTML('afterend', historyHtml);
                 }
             } else if(historyContainer) {
-                historyContainer.innerHTML = `<span> Нещодавні пошуки:</span> ${searchHistory.map(s => `<span class="history-item" onclick="applyHistorySearch('${s.from}', '${s.to}')">${s.from || '?'} → ${s.to || '?'}</span>`).join('')}`;
+                historyContainer.innerHTML = `<span>📜 Нещодавні пошуки:</span> ${searchHistory.map(s => `<span class="history-item" onclick="applyHistorySearch('${s.from}', '${s.to}')">${s.from || '?'} → ${s.to || '?'}</span>`).join('')}`;
             }
         }
         
@@ -613,12 +722,10 @@
             selectedDate = date.toISOString().split('T')[0];
             const dateInput = document.getElementById('travelDate');
             if(dateInput) dateInput.value = selectedDate;
-            Swal.fire(' Обрано', `Дата: ${selectedDate}`, 'success');
+            Swal.fire('✅ Обрано', `Дата: ${selectedDate}`, 'success');
         }
         
-        // ГОЛОВНА ФУНКЦІЯ ПОКУПКИ (ВИПРАВЛЕНО)
         function buyTicket(routeId, isInternational) {
-            // Перевірка авторизації
             const user = JSON.parse(localStorage.getItem('current_user'));
             if(!user) {
                 Swal.fire({ 
@@ -634,72 +741,32 @@
                 return;
             }
             
-            // Перевірка дати
             if(!selectedDate) {
-                Swal.fire(' Виберіть дату', 'Будь ласка, оберіть дату поїздки', 'warning');
+                Swal.fire('⚠️ Виберіть дату', 'Будь ласка, оберіть дату поїздки', 'warning');
                 return;
             }
             
-            // Отримуємо маршрут
             let route = isInternational ? internationalRoutes.find(r => r.id === routeId) : routes.find(r => r.id === routeId);
+            if(!route) return;
             
-            if(!route) {
-                Swal.fire('Помилка', 'Маршрут не знайдено', 'error');
-                return;
-            }
-            
-            // Застосовуємо промокод
             const discounted = applyDiscount(route.price);
             
-            // Показуємо діалог покупки
             Swal.fire({
-                title: ` Квиток ${route.from} → ${route.to}`,
-                html: `
-                    <div style="text-align: center;">
-                        <p> Ціна: <strong>${discounted.price} грн</strong> ${discounted.discount > 0 ? `<span style="color:#ff9800;">(знижка ${discounted.discount}%)</span>` : ''}</p>
-                        <p> Дата: <strong>${selectedDate}</strong></p>
-                        <p> Час відправлення: <strong>${route.time}</strong></p>
-                        <hr>
-                        <div style="margin: 10px 0;">
-                            <label> Кількість дорослих:</label>
-                            <div>
-                                <button type="button" id="adultMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
-                                <span id="adultCount" style="font-size:20px; margin:0 15px;">1</span>
-                                <button type="button" id="adultPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
-                            </div>
-                        </div>
-                        <div style="margin: 10px 0;">
-                            <label> Кількість дітей (до 12 років):</label>
-                            <div>
-                                <button type="button" id="childMinus" style="width:30px; height:30px; border-radius:50%; background:#ff4444; color:white; border:none;">-</button>
-                                <span id="childCount" style="font-size:20px; margin:0 15px;">0</span>
-                                <button type="button" id="childPlus" style="width:30px; height:30px; border-radius:50%; background:#44aa44; color:white; border:none;">+</button>
-                            </div>
-                        </div>
-                        <hr>
-                        <div id="priceBreakdown" style="background:rgba(0,102,204,0.1); padding:10px; border-radius:8px;">
-                             Дорослі: 1 × ${discounted.price} грн = ${discounted.price} грн<br>
-                             Діти: 0 × ${Math.round(discounted.price * 0.5)} грн = 0 грн<br>
-                            <strong>Всього: ${discounted.price} грн</strong>
-                        </div>
-                    </div>
-                `,
+                title: `🎫 Квиток ${route.from} → ${route.to}`,
+                html: `<div style="text-align: center;"><p>💰 Ціна: <strong>${discounted.price} грн</strong> ${discounted.discount > 0 ? `<span style="color:#ff9800;">(знижка ${discounted.discount}%)</span>` : ''}</p><p>📅 Дата: <strong>${selectedDate}</strong></p><p>⏰ Час: <strong>${route.time}</strong></p><hr><div><button id="adultMinus" style="width:30px;height:30px;border-radius:50%;background:#ff4444;color:white;border:none;">-</button><span id="adultCount" style="font-size:20px;margin:0 15px;">1</span><button id="adultPlus" style="width:30px;height:30px;border-radius:50%;background:#44aa44;color:white;border:none;">+</button> 👨</div><div><button id="childMinus" style="width:30px;height:30px;border-radius:50%;background:#ff4444;color:white;border:none;">-</button><span id="childCount" style="font-size:20px;margin:0 15px;">0</span><button id="childPlus" style="width:30px;height:30px;border-radius:50%;background:#44aa44;color:white;border:none;">+</button> 🧒</div><hr><div id="priceBreakdown" style="background:rgba(0,102,204,0.1);padding:10px;border-radius:8px;"><strong>💰 Сума: ${discounted.price} грн</strong></div></div>`,
                 showCancelButton: true,
-                confirmButtonText: ' Підтвердити покупку',
-                cancelButtonText: ' Скасувати',
+                confirmButtonText: '✅ Підтвердити',
                 didOpen: () => {
                     let adult = 1, child = 0;
                     const adultSpan = document.getElementById('adultCount');
                     const childSpan = document.getElementById('childCount');
                     const priceDiv = document.getElementById('priceBreakdown');
-                    
                     const updatePrice = () => {
                         const adultPrice = discounted.price * adult;
                         const childPrice = Math.round(discounted.price * 0.5) * child;
                         const total = adultPrice + childPrice;
-                        priceDiv.innerHTML = ` Дорослі: ${adult} × ${discounted.price} грн = ${adultPrice} грн<br> Діти: ${child} × ${Math.round(discounted.price * 0.5)} грн = ${childPrice} грн<br><strong>Всього: ${total} грн</strong>`;
+                        priceDiv.innerHTML = `💰 Дорослі: ${adult} × ${discounted.price} = ${adultPrice} грн<br>👶 Діти: ${child} × ${Math.round(discounted.price * 0.5)} = ${childPrice} грн<br><strong>Всього: ${total} грн</strong>`;
                     };
-                    
                     document.getElementById('adultPlus').onclick = () => { if(adult + child < 10) { adult++; adultSpan.innerText = adult; updatePrice(); } };
                     document.getElementById('adultMinus').onclick = () => { if(adult > 0) { adult--; adultSpan.innerText = adult; updatePrice(); } };
                     document.getElementById('childPlus').onclick = () => { if(adult + child < 10) { child++; childSpan.innerText = child; updatePrice(); } };
@@ -711,7 +778,6 @@
                     const child = parseInt(document.getElementById('childCount')?.innerText || 0);
                     const totalPrice = (discounted.price * adult) + (Math.round(discounted.price * 0.5) * child);
                     
-                    // Зберігаємо квиток
                     const tickets = JSON.parse(localStorage.getItem('user_tickets') || '[]');
                     tickets.push({
                         id: Date.now(),
@@ -726,9 +792,7 @@
                     });
                     localStorage.setItem('user_tickets', JSON.stringify(tickets));
                     
-                    Swal.fire(' Успішно!', `Квиток ${route.from} → ${route.to} придбано! Сума: ${totalPrice} грн`, 'success');
-                    
-                    // Очищаємо використаний промокод
+                    Swal.fire('✅ Успішно!', `Квиток ${route.from} → ${route.to} придбано! Сума: ${totalPrice} грн`, 'success');
                     if(discounted.discount > 0) localStorage.removeItem('active_promo');
                 }
             });
@@ -740,8 +804,8 @@
                 const dateHtml = `<div style="display: flex; gap: 5px; align-items: center;">
                     <input type="date" id="travelDate" class="date-input" value="${selectedDate}">
                     <div class="quick-date-buttons">
-                        <button class="quick-date-btn" onclick="setTravelDate('today')"> Сьогодні</button>
-                        <button class="quick-date-btn" onclick="setTravelDate('tomorrow')"> Завтра</button>
+                        <button class="quick-date-btn" onclick="setTravelDate('today')">📅 Сьогодні</button>
+                        <button class="quick-date-btn" onclick="setTravelDate('tomorrow')">📅 Завтра</button>
                     </div>
                 </div>`;
                 searchBox.insertAdjacentHTML('beforeend', dateHtml);
@@ -753,9 +817,9 @@
             const container = document.querySelector('#domesticTab');
             if(container && !document.getElementById('promoSection')) {
                 const promoHtml = `<div id="promoSection" class="promo-input">
-                    <span> ПРОМОКОД:</span>
+                    <span>🎫 ПРОМОКОД:</span>
                     <input type="text" id="promoInput" placeholder="Введіть промокод">
-                    <button onclick="applyPromoCode()"> Активувати знижку</button>
+                    <button onclick="applyPromoCode()">💸 Активувати знижку</button>
                     <span style="font-size: 11px;">${Object.keys(promoCodes).join(', ')}</span>
                 </div>`;
                 container.insertAdjacentHTML('afterbegin', promoHtml);
@@ -767,10 +831,10 @@
             const container = document.querySelector('#domesticTab');
             if(container && !document.getElementById('seatsInfoBox')) {
                 const seatsHtml = `<div id="seatsInfoBox" class="promo-input" style="justify-content: center; margin-top: 10px;">
-                    <span> Вільних місць у потязі: </span>
+                    <span>🎫 Вільних місць у потязі: </span>
                     <strong style="font-size: 20px; color: ${available < 5 ? '#ff4444' : '#4caf50'}">${available}</strong>
                     <span> з 32</span>
-                    ${available < 5 ? '<span style="color:#ff4444;">  Останні місця!</span>' : ''}
+                    ${available < 5 ? '<span style="color:#ff4444;"> ⚠️ Останні місця!</span>' : ''}
                 </div>`;
                 container.insertBefore(document.createElement('div'), container.children[1]);
                 container.children[1].outerHTML = seatsHtml;
@@ -784,24 +848,19 @@
         
         // ========== ІНІЦІАЛІЗАЦІЯ ==========
         function init() {
-            // Відновлення теми
             if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
             
-            // Налаштування автодоповнення
             setupAutocomplete('searchFrom', 'fromAutocomplete');
             setupAutocomplete('searchTo', 'toAutocomplete');
             
-            // Відображення маршрутів
             showAllRoutes();
             showInternationalRoutes();
             
-            // Додаткові функції
             addDateSelector();
             addPromoSection();
             addSeatsInfo();
             updateSearchHistoryUI();
             
-            // Робимо функції глобальними
             window.switchTab = switchTab;
             window.searchRoutes = searchRoutes;
             window.clearSearch = clearSearch;
@@ -813,9 +872,10 @@
             window.applyHistorySearch = applyHistorySearch;
             window.toggleTheme = toggleTheme;
             window.selectStation = selectStation;
+            window.resetFilters = resetFilters;
+            window.updatePriceValue = updatePriceValue;
         }
         
-        // Запуск
         init();
     </script>
 </body>
