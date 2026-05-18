@@ -1,13 +1,12 @@
 // ========== SUPABASE КЛІЄНТ ==========
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ⚠️ ЗАМІНИ ЦІ ДВА РЯДКИ НА СВОЇ ДАНІ ⚠️
-const SUPABASE_URL = 'https://rvngppzmkhvwbdnauduo;      
-const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';  
+const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Функція для отримання маршрутів з Supabase
+// Отримання маршрутів з Supabase
 export async function fetchRoutesFromSupabase() {
     const { data, error } = await supabase
         .from('routes')
@@ -22,7 +21,7 @@ export async function fetchRoutesFromSupabase() {
     return data || [];
 }
 
-// Функція для додавання маршруту в Supabase
+// Додавання маршруту
 export async function addRouteToSupabase(route) {
     const { data, error } = await supabase
         .from('routes')
@@ -42,7 +41,7 @@ export async function addRouteToSupabase(route) {
     return data[0];
 }
 
-// Функція для оновлення маршруту
+// Оновлення маршруту
 export async function updateRouteInSupabase(id, route) {
     const { data, error } = await supabase
         .from('routes')
@@ -63,7 +62,7 @@ export async function updateRouteInSupabase(id, route) {
     return data[0];
 }
 
-// Функція для видалення маршруту
+// Видалення маршруту
 export async function deleteRouteFromSupabase(id) {
     const { error } = await supabase
         .from('routes')
