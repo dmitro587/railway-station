@@ -177,7 +177,10 @@
         // ========== SUPABASE ==========
         const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
-        const supabase = window.supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase;
+if (typeof window.supabaseJs !== 'undefined') {
+    supabase = window.supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
         // ========== ГОДИННИК ==========
         function updateDateTime() {
