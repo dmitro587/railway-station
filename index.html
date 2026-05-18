@@ -22,18 +22,14 @@
         button:hover { background: #004999; }
         body.dark button { background: #e94560; }
         body.dark button:hover { background: #c62a48; }
-        .theme-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; }
+        .theme-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 1000; }
         .route-card { background: white; border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
         body.dark .route-card { background: #1a1a2e; border: 1px solid #2c3e50; }
         .route-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .loading { text-align: center; padding: 40px; color: #666; }
-        
-        /* Годинник */
         .datetime-header { display: flex; justify-content: flex-end; font-size: 14px; background: rgba(0,0,0,0.1); padding: 5px 15px; border-radius: 20px; margin-top: 5px; }
         .datetime-header span { margin-left: 15px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        
-        /* Слайдер */
         .slider-container { position: relative; max-width: 100%; margin-bottom: 30px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .slider { display: flex; transition: transform 0.5s ease-in-out; }
         .slide { min-width: 100%; padding: 40px; text-align: center; color: white; }
@@ -50,8 +46,6 @@
         .dots { text-align: center; margin-top: 10px; }
         .dot { display: inline-block; width: 10px; height: 10px; margin: 0 5px; background: #bbb; border-radius: 50%; cursor: pointer; }
         .dot.active { background: #0066cc; }
-        
-        /* Хмара тегів */
         .tag-cloud { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; text-align: center; }
         body.dark .tag-cloud { background: #16213e; }
         .tag { display: inline-block; margin: 5px; padding: 5px 15px; background: rgba(0,102,204,0.1); border-radius: 20px; cursor: pointer; transition: 0.3s; }
@@ -60,8 +54,6 @@
         .tag-2 { font-size: 20px; }
         .tag-3 { font-size: 16px; }
         .tag-4 { font-size: 14px; }
-        
-        /* Відгуки */
         .reviews-carousel { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; }
         body.dark .reviews-carousel { background: #16213e; }
         .reviews-container { display: flex; overflow-x: auto; gap: 20px; scroll-behavior: smooth; padding: 10px 0; }
@@ -69,22 +61,15 @@
         .review-text { font-style: italic; margin: 10px 0; }
         .review-author { font-weight: bold; color: #0066cc; }
         .review-stars { color: #ffc107; font-size: 14px; }
-        
-        /* Лічильник */
         .counter-section { text-align: center; padding: 30px; background: linear-gradient(135deg, #003366, #0066cc); border-radius: 15px; color: white; margin-bottom: 30px; }
         .counter-number { font-size: 3rem; font-weight: bold; }
         .counter-label { font-size: 1rem; opacity: 0.9; }
-        
-        /* Акції */
         .promo-banner { background: linear-gradient(135deg, #ff6600, #ff3300); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.9; } 100% { opacity: 1; } }
         .promo-banner a { color: white; text-decoration: underline; }
-        
-        /* Швидкий пошук */
         .quick-search { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .quick-search input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: white; color: #333; }
         body.dark .quick-search input { background: #1a1a2e; border-color: #2c3e50; color: #eee; }
-        
         @media (max-width: 768px) { .slide h2 { font-size: 1.2rem; } .tag-1 { font-size: 18px; } .counter-number { font-size: 2rem; } .review-card { min-width: 240px; } .quick-search { flex-direction: column; } }
     </style>
 </head>
@@ -162,13 +147,10 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
-        // ========== SUPABASE ==========
+        // ========== SUPABASE (ОДИН РАЗ) ==========
         const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
-        let supabase;
-        if (typeof supabaseJs !== 'undefined') {
-            supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
+        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ========== ГОДИННИК ==========
         function updateDateTime() {
@@ -234,7 +216,6 @@
 
         // ========== МАРШРУТИ З SUPABASE ==========
         async function fetchRoutes() {
-            if (!supabase) return [];
             try {
                 const { data, error } = await supabase.from('routes').select('*').order('id');
                 if (error) throw error;
