@@ -6,6 +6,45 @@
     <title>Вхід</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { validateLogin } from './js/validation.js';
+        import { showErrors, showFormStatus } from './js/ui/forms.js';
+        import { loginUser } from './js/services/auth.js';
+
+        // Елементи форми
+        const form = document.getElementById('loginForm');
+        const emailInput = document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('loginPassword');
+        const statusEl = document.getElementById('formStatus');
+
+        // Обробка відправки форми
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                email: emailInput.value.trim(),
+                password: passwordInput.value
+            };
+            
+            // Валідація
+            const { isValid, errors } = validateLogin(payload);
+            showErrors(form, errors);
+            
+            if (!isValid) return;
+            
+            // Спроба входу
+            const result = loginUser(payload.email, payload.password);
+            
+            if (result.success) {
+                showFormStatus(statusEl, '✅ Вхід виконано! Перенаправлення...', false);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } else {
+                showFormStatus(statusEl, result.error, true);
+            }
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -25,9 +64,18 @@
     <main>
         <div class="form-container">
             <h2>🔐 Вхід</h2>
-            <input type="email" id="loginEmail" placeholder="Email" style="width:100%; padding:10px; margin:10px 0">
-            <input type="password" id="loginPassword" placeholder="Пароль" style="width:100%; padding:10px; margin:10px 0">
-            <button onclick="login()" style="width:100%; padding:10px">Увійти</button>
+            <form id="loginForm">
+                <div>
+                    <input type="email" id="loginEmail" name="email" placeholder="Email" style="width:100%; padding:10px; margin:10px 0">
+                    <div class="field-error" data-error="email" hidden></div>
+                </div>
+                <div>
+                    <input type="password" id="loginPassword" name="password" placeholder="Пароль" style="width:100%; padding:10px; margin:10px 0">
+                    <div class="field-error" data-error="password" hidden></div>
+                </div>
+                <button type="submit" style="width:100%; padding:10px">Увійти</button>
+                <div id="formStatus" class="status" hidden></div>
+            </form>
             <p>Немає акаунту? <a href="register.html">Зареєструватися</a></p>
             <p><a href="forgot-password.html">Забули пароль?</a></p>
         </div>
@@ -35,32 +83,7 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
-        function login() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            if(!email || !password) {
-                Swal.fire('Помилка', 'Введіть email та пароль', 'error');
-                return;
-            }
-            
-            // Отримуємо список користувачів
-            const users = JSON.parse(localStorage.getItem('railway_users') || '[]');
-            
-            // Шукаємо користувача
-            const user = users.find(u => u.email === email && u.password === password);
-            
-            if(user) {
-                // Зберігаємо поточного користувача
-                localStorage.setItem('current_user', JSON.stringify(user));
-                Swal.fire('Успіх!', `Вітаємо, ${user.name}!`, 'success').then(() => {
-                    window.location.href = 'index.html';
-                });
-            } else {
-                Swal.fire('Помилка', 'Невірний email або пароль', 'error');
-            }
-        }
-        
+        // Темна тема (окремий скрипт, бо він не залежить від модулів)
         function toggleTheme() {
             document.body.classList.toggle('dark');
             localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
