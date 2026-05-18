@@ -155,4 +155,38 @@
         // ========== ЗАПУСК ==========
         displayRoutes();
         showUserStatus();
+        <script>
+    // Екстрений запуск, якщо щось зламалось
+    setTimeout(function() {
+        const container = document.getElementById('popular-routes');
+        if (container && container.innerHTML.includes('Завантаження') && container.innerHTML.length < 100) {
+            container.innerHTML = `
+                <div class="route-card">
+                    <strong>Київ → Львів</strong><br>
+                    🕐 08:00 | 💰 450 грн | ⏱ 5 год<br>
+                    ⭐ 4.5<br>
+                    🌡️ ☀️ +22°C<br>
+                    <button onclick="alert('Функція покупки')">🎫 Купити</button>
+                    <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
+                </div>
+                <div class="route-card">
+                    <strong>Київ → Одеса</strong><br>
+                    🕐 09:30 | 💰 420 грн | ⏱ 4.5 год<br>
+                    ⭐ 4.8<br>
+                    🌡️ 🌊 +24°C<br>
+                    <button onclick="alert('Функція покупки')">🎫 Купити</button>
+                    <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
+                </div>
+                <div class="route-card">
+                    <strong>Київ → Харків</strong><br>
+                    🕐 07:15 | 💰 380 грн | ⏱ 4.5 год<br>
+                    ⭐ 4.2<br>
+                    🌡️ ☁️ +20°C<br>
+                    <button onclick="alert('Функція покупки')">🎫 Купити</button>
+                    <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
+                </div>
+            `;
+        }
+    }, 2000);
+</script>
     </script>
