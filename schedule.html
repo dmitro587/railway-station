@@ -164,6 +164,93 @@
             .search-box { flex-direction: column; } 
             .autocomplete-container { width: 100%; }
         }
+        /* ========== ФІЛЬТРИ ТА СОРТУВАННЯ ========== */
+.filter-panel {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+.filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    opacity: 0.8;
+}
+.price-slider {
+    width: 100%;
+    margin: 10px 0;
+}
+.price-values {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+.sort-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.sort-btn {
+    background: rgba(0,102,204,0.1);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.sort-btn.active {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+.sort-btn:hover {
+    background: #0066cc;
+    color: white;
+}
+.reset-btn {
+    background: #ff9800;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+.reset-btn:hover {
+    background: #e68900;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+.page-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.page-btn.active {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+.page-btn:hover:not(.active) {
+    background: rgba(0,102,204,0.1);
+}
     </style>
 </head>
 <body>
