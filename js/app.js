@@ -1,7 +1,40 @@
 // ========== ГОЛОВНИЙ МОДУЛЬ ==========
 import { initTheme, toggleTheme, updateThemeButton } from './ui/theme.js';
-import { getRoutes, getFavorites, addPriceAlert, getTicketStats } from './services/storage.js';
+import { getTicketStats } from './services/storage.js';
 import { getCurrentUser, logoutUser } from './services/auth.js';
+
+// ========== СТАНИ ЗАВАНТАЖЕННЯ ==========
+const STATES = {
+    loading: `
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>⏳ Завантаження маршрутів...</p>
+        </div>
+    `,
+    empty: `
+        <div class="empty-state">
+            <p>📭 Наразі немає доступних маршрутів</p>
+            <p>Спробуйте пізніше або змініть параметри пошуку</p>
+        </div>
+    `,
+    error: (message) => `
+        <div class="error-state">
+            <p>❌ ${message || 'Помилка завантаження'}</p>
+            <button class="retry-btn" onclick="location.reload()">🔄 Спробувати знову</button>
+        </div>
+    `
+};
+
+function showState(container, state, message = '') {
+    if (!container) return;
+    if (state === 'loading') {
+        container.innerHTML = STATES.loading;
+    } else if (state === 'empty') {
+        container.innerHTML = STATES.empty;
+    } else if (state === 'error') {
+        container.innerHTML = STATES.error(message);
+    }
+}
 
 // ========== ГОДИННИК ТА ДАТА ==========
 function updateDateTime() {
@@ -105,29 +138,46 @@ const routes = [
 function displayRoutes() {
     const container = document.querySelector('[data-popular-routes]');
     if(!container) return;
-    container.innerHTML = "";
-    routes.forEach(route => {
-        const div = document.createElement("div");
-        div.className = "route-card";
-        div.innerHTML = `
-            <div style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleStops(${route.id})">
-                <div>
-                    <strong>${route.from} → ${route.to}</strong><br>
-                    🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration}<br>
-                    <span style="color:#ffc107;">${'⭐'.repeat(Math.floor(route.rating))} ${route.rating}</span>
-                </div>
-                <button onclick="event.stopPropagation(); toggleStops(${route.id})" style="background:none; border:none;">▼ Зупинки</button>
-            </div>
-            <div id="stops-${route.id}" style="display:none; margin-top:10px; padding:10px; background:rgba(0,0,0,0.05); border-radius:8px;">
-                <strong>📍 Зупинки:</strong> ${route.stops.join(' → ')}
-            </div>
-            <div style="margin-top:10px;">
-                <button onclick="buyTicket(${route.id})">🎫 Купити</button>
-                <button onclick="toggleFavorite(${route.id})">⭐ Вибране</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
+    
+    // Показуємо стан завантаження
+    showState(container, 'loading');
+    
+    // Імітуємо завантаження (можна замінити на реальний fetch)
+    setTimeout(() => {
+        try {
+            if (!routes || routes.length === 0) {
+                showState(container, 'empty');
+                return;
+            }
+            
+            container.innerHTML = "";
+            routes.forEach(route => {
+                const div = document.createElement("div");
+                div.className = "route-card";
+                div.innerHTML = `
+                    <div style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleStops(${route.id})">
+                        <div>
+                            <strong>${route.from} → ${route.to}</strong><br>
+                            🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration}<br>
+                            <span style="color:#ffc107;">${'⭐'.repeat(Math.floor(route.rating))} ${route.rating}</span>
+                        </div>
+                        <button onclick="event.stopPropagation(); toggleStops(${route.id})" style="background:none; border:none;">▼ Зупинки</button>
+                    </div>
+                    <div id="stops-${route.id}" style="display:none; margin-top:10px; padding:10px; background:rgba(0,0,0,0.05); border-radius:8px;">
+                        <strong>📍 Зупинки:</strong> ${route.stops.join(' → ')}
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button onclick="buyTicket(${route.id})">🎫 Купити</button>
+                        <button onclick="toggleFavorite(${route.id})">⭐ Вибране</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Помилка рендеру:', error);
+            showState(container, 'error', 'Не вдалося завантажити маршрути');
+        }
+    }, 500); // Імітація затримки завантаження
 }
 
 window.toggleStops = function(id) { 
@@ -186,7 +236,7 @@ function init() {
     // Слайдер
     initSlider();
     
-    // Маршрути
+    // Маршрути (з станом завантаження)
     displayRoutes();
     
     // Статус користувача
