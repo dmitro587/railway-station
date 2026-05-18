@@ -1,17 +1,19 @@
 // ========== РОБОТА З ФОРМАМИ ==========
 export function showErrors(form, errors) {
+    // Очищаємо попередні помилки
     form.querySelectorAll('[data-error]').forEach(el => {
         const fieldName = el.dataset.error;
         if (errors[fieldName]) {
             el.textContent = errors[fieldName];
             el.hidden = false;
+            // Додаємо клас помилки до поля
             const input = form.querySelector(`[name="${fieldName}"]`);
-            if (input) input.classList.add('error');
+            if (input) input.classList.add('input-error');
         } else {
             el.textContent = '';
             el.hidden = true;
             const input = form.querySelector(`[name="${fieldName}"]`);
-            if (input) input.classList.remove('error');
+            if (input) input.classList.remove('input-error');
         }
     });
 }
@@ -23,15 +25,6 @@ export function clearForm(form) {
 
 export function getFormData(form) {
     return Object.fromEntries(new FormData(form));
-}
-
-export function prefillForm(form, data) {
-    for (const [key, value] of Object.entries(data)) {
-        const field = form.elements[key];
-        if (field && !field.value) {
-            field.value = value;
-        }
-    }
 }
 
 export function showFormStatus(element, message, isError = false) {
