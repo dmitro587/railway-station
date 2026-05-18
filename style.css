@@ -492,3 +492,82 @@ footer {
     border-radius: 8px;
     margin-top: 10px;
 }
+/* ========== СТИЛІ ДЛЯ ПОМИЛОК ФОРМ ========== */
+.input-error {
+    border: 2px solid #ff4444 !important;
+    background: rgba(255, 68, 68, 0.05);
+}
+
+.field-error {
+    color: #ff4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+.status.success {
+    color: #4caf50;
+    background: rgba(76, 175, 80, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.status.error {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* ========== СТАНИ ЗАВАНТАЖЕННЯ ========== */
+.loading-state, .empty-state, .error-state {
+    text-align: center;
+    padding: 40px;
+    border-radius: 15px;
+    background: var(--card);
+    margin: 20px 0;
+}
+
+.loading-state {
+    color: var(--btn);
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0,102,204,0.3);
+    border-radius: 50%;
+    border-top-color: var(--btn);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.empty-state {
+    color: var(--muted);
+}
+
+.error-state {
+    color: #ff4444;
+    background: rgba(255,68,68,0.1);
+}
+
+.retry-btn {
+    background: var(--btn);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.retry-btn:hover {
+    background: var(--btn-hover);
+}
