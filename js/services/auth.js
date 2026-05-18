@@ -1,6 +1,48 @@
-import { getUsers, saveUsers, getCurrentUser, setCurrentUser } from './storage.js';
-
 // ========== АВТОРИЗАЦІЯ ==========
+const USERS_KEY = 'railway_users';
+const SESSION_KEY = 'current_user';
+
+// Отримати всіх користувачів
+export function getUsers() {
+    return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+}
+
+// Зберегти всіх користувачів
+export function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+// Отримати поточного користувача
+export function getCurrentUser() {
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+}
+
+// Встановити поточного користувача
+export function setCurrentUser(user) {
+    if (!user) {
+        localStorage.removeItem(SESSION_KEY);
+        return;
+    }
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+}
+
+// Перевірка, чи користувач залогінений
+export function isLoggedIn() {
+    return getCurrentUser() !== null;
+}
+
+// Отримати роль поточного користувача
+export function getCurrentUserRole() {
+    const user = getCurrentUser();
+    return user?.role || 'guest';
+}
+
+// Перевірка, чи є користувач адміністратором
+export function isAdmin() {
+    return getCurrentUserRole() === 'admin';
+}
+
+// Реєстрація нового користувача
 export function registerUser(name, email, password) {
     const users = getUsers();
     
@@ -25,6 +67,7 @@ export function registerUser(name, email, password) {
     return { success: true, user: newUser };
 }
 
+// Вхід користувача
 export function loginUser(email, password) {
     const users = getUsers();
     const user = users.find(u => u.email === email && u.password === password);
@@ -37,23 +80,12 @@ export function loginUser(email, password) {
     return { success: true, user };
 }
 
+// Вихід користувача
 export function logoutUser() {
     setCurrentUser(null);
 }
 
-export function isLoggedIn() {
-    return getCurrentUser() !== null;
-}
-
-export function getCurrentUserRole() {
-    const user = getCurrentUser();
-    return user?.role || 'guest';
-}
-
-export function isAdmin() {
-    return getCurrentUserRole() === 'admin';
-}
-
+// Вимога авторизації (перевіряє чи залогінений)
 export function requireAuth(redirectUrl = 'login.html') {
     if (!isLoggedIn()) {
         window.location.href = redirectUrl;
@@ -62,6 +94,7 @@ export function requireAuth(redirectUrl = 'login.html') {
     return true;
 }
 
+// Вимога ролі адміністратора
 export function requireAdmin(redirectUrl = 'index.html') {
     if (!isAdmin()) {
         window.location.href = redirectUrl;
@@ -70,6 +103,7 @@ export function requireAdmin(redirectUrl = 'index.html') {
     return true;
 }
 
+// Зміна пароля
 export function changePassword(oldPassword, newPassword) {
     const user = getCurrentUser();
     if (!user) return { success: false, error: 'Не авторизований' };
