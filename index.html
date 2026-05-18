@@ -14,7 +14,7 @@
         body.dark { background: #1a1a2e; color: #eee; }
         header { background: #003366; color: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; }
         body.dark header { background: #0f3460; }
-        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; border-radius: 5px; transition: 0.3s; }
+        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; border-radius: 5px; }
         nav a:hover { background: rgba(255,255,255,0.2); }
         main { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         body.dark main { background: #16213e; }
@@ -22,7 +22,7 @@
         button:hover { background: #004999; }
         body.dark button { background: #e94560; }
         body.dark button:hover { background: #c62a48; }
-        .theme-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 1000; }
+        .theme-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; }
         .route-card { background: white; border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
         body.dark .route-card { background: #1a1a2e; border: 1px solid #2c3e50; }
         .route-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
@@ -147,10 +147,10 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
-        // ========== SUPABASE (ОДИН РАЗ) ==========
+        // ========== SUPABASE (УНІКАЛЬНА НАЗВА) ==========
         const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
-        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const sbClient = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ========== ГОДИННИК ==========
         function updateDateTime() {
@@ -217,7 +217,7 @@
         // ========== МАРШРУТИ З SUPABASE ==========
         async function fetchRoutes() {
             try {
-                const { data, error } = await supabase.from('routes').select('*').order('id');
+                const { data, error } = await sbClient.from('routes').select('*').order('id');
                 if (error) throw error;
                 return data || [];
             } catch (err) {
