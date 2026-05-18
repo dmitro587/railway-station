@@ -144,6 +144,35 @@
             font-size: 20px;
         }
         
+        /* Стилі для форми входу */
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 16px;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .error-msg {
+            color: #dc3545;
+            margin-top: 10px;
+        }
+        
         @media (max-width: 768px) {
             .admin-layout { flex-direction: column; }
             .route-card { flex-direction: column; gap: 10px; }
@@ -152,71 +181,130 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>🔧 Admin панель – Управління маршрутами</h1>
-        <nav>
-            <a href="index.html">🏠 Головна</a>
-            <a href="schedule.html">📅 Розклад</a>
-            <a href="admin.html">⚙ Адмін</a>
-            <a href="login.html">🔐 Вихід</a>
-        </nav>
-    </header>
+    <div id="adminContent" style="display: none;">
+        <header>
+            <h1>🔧 Admin панель – Управління маршрутами</h1>
+            <nav>
+                <a href="index.html">🏠 Головна</a>
+                <a href="schedule.html">📅 Розклад</a>
+                <a href="admin.html">⚙ Адмін</a>
+                <a href="#" onclick="logout()">🔐 Вихід</a>
+            </nav>
+        </header>
 
-    <main>
-        <div class="admin-layout">
-            <!-- Форма додавання/редагування -->
-            <div class="form-section">
-                <h2 id="formTitle">➕ Додати новий маршрут</h2>
-                <form id="routeForm">
-                    <input type="hidden" id="routeId" name="id">
-                    <div class="form-group">
-                        <label>🚉 Звідки</label>
-                        <input type="text" id="fromCity" name="from" required placeholder="напр. Київ">
-                    </div>
-                    <div class="form-group">
-                        <label>📍 Куди</label>
-                        <input type="text" id="toCity" name="to" required placeholder="напр. Львів">
-                    </div>
-                    <div class="form-group">
-                        <label>🕐 Час відправлення</label>
-                        <input type="time" id="time" name="time" required>
-                    </div>
-                    <div class="form-group">
-                        <label>💰 Ціна (грн)</label>
-                        <input type="number" id="price" name="price" required min="0" step="10">
-                    </div>
-                    <div class="form-group">
-                        <label>⏱ Тривалість</label>
-                        <input type="text" id="duration" name="duration" placeholder="напр. 5 год">
-                    </div>
-                    <div class="form-group">
-                        <label>📏 Відстань</label>
-                        <input type="text" id="distance" name="distance" placeholder="напр. 540 км">
-                    </div>
-                    <div class="form-group">
-                        <label>⭐ Рейтинг</label>
-                        <input type="number" id="rating" name="rating" step="0.1" min="0" max="5" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label>📍 Зупинки (через кому)</label>
-                        <input type="text" id="stops" name="stops" placeholder="напр. Житомир, Рівне">
-                    </div>
-                    <button type="submit" class="btn-success">💾 Зберегти</button>
-                    <button type="button" id="cancelBtn" style="background:#6c757d;">❌ Скасувати</button>
-                </form>
-            </div>
+        <main>
+            <div class="admin-layout">
+                <!-- Форма додавання/редагування -->
+                <div class="form-section">
+                    <h2 id="formTitle">➕ Додати новий маршрут</h2>
+                    <form id="routeForm">
+                        <input type="hidden" id="routeId" name="id">
+                        <div class="form-group">
+                            <label>🚉 Звідки</label>
+                            <input type="text" id="fromCity" name="from" required placeholder="напр. Київ">
+                        </div>
+                        <div class="form-group">
+                            <label>📍 Куди</label>
+                            <input type="text" id="toCity" name="to" required placeholder="напр. Львів">
+                        </div>
+                        <div class="form-group">
+                            <label>🕐 Час відправлення</label>
+                            <input type="time" id="time" name="time" required>
+                        </div>
+                        <div class="form-group">
+                            <label>💰 Ціна (грн)</label>
+                            <input type="number" id="price" name="price" required min="0" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>⏱ Тривалість</label>
+                            <input type="text" id="duration" name="duration" placeholder="напр. 5 год">
+                        </div>
+                        <div class="form-group">
+                            <label>📏 Відстань</label>
+                            <input type="text" id="distance" name="distance" placeholder="напр. 540 км">
+                        </div>
+                        <div class="form-group">
+                            <label>⭐ Рейтинг</label>
+                            <input type="number" id="rating" name="rating" step="0.1" min="0" max="5" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>📍 Зупинки (через кому)</label>
+                            <input type="text" id="stops" name="stops" placeholder="напр. Житомир, Рівне">
+                        </div>
+                        <button type="submit" class="btn-success">💾 Зберегти</button>
+                        <button type="button" id="cancelBtn" style="background:#6c757d;">❌ Скасувати</button>
+                    </form>
+                </div>
 
-            <!-- Список маршрутів -->
-            <div class="list-section">
-                <h2>📋 Список маршрутів (<span id="routesCount">0</span>)</h2>
-                <div id="routesList"></div>
+                <!-- Список маршрутів -->
+                <div class="list-section">
+                    <h2>📋 Список маршрутів (<span id="routesCount">0</span>)</h2>
+                    <div id="routesList"></div>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
+    <!-- Форма входу для адміна -->
+    <div id="loginSection" class="login-container">
+        <h2>🔐 Вхід в адмін-панель</h2>
+        <input type="text" id="adminLogin" placeholder="Логін">
+        <input type="password" id="adminPassword" placeholder="Пароль">
+        <button onclick="checkAdminLogin()">Увійти</button>
+        <div id="loginError" class="error-msg"></div>
+        <p style="margin-top: 15px;"><a href="index.html">← Повернутися на головну</a></p>
+    </div>
 
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
+        // ========== ДАНІ ДЛЯ ВХОДУ (змініть на свої) ==========
+        const ADMIN_CREDENTIALS = {
+            login: "admin",
+            password: "admin123"
+        };
+        
+        // ========== ПЕРЕВІРКА ЧИ АДМІН ЗАЛОГІНЕНИЙ ==========
+        function isAdminLoggedIn() {
+            return localStorage.getItem('admin_logged_in') === 'true';
+        }
+        
+        // ========== ВИХІД ==========
+        window.logout = function() {
+            localStorage.removeItem('admin_logged_in');
+            Swal.fire('Ви вийшли', 'До побачення!', 'info').then(() => {
+                location.reload();
+            });
+        };
+        
+        // ========== ПЕРЕВІРКА ЛОГІНУ ==========
+        window.checkAdminLogin = function() {
+            const login = document.getElementById('adminLogin').value;
+            const password = document.getElementById('adminPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (login === ADMIN_CREDENTIALS.login && password === ADMIN_CREDENTIALS.password) {
+                localStorage.setItem('admin_logged_in', 'true');
+                Swal.fire('Успіх!', 'Вітаємо в адмін панелі!', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                errorDiv.innerText = '❌ Невірний логін або пароль';
+            }
+        };
+        
+        // ========== ПОКАЗУЄМО ПРАВИЛЬНИЙ ІНТЕРФЕЙС ==========
+        function showAdminInterface() {
+            if (isAdminLoggedIn()) {
+                document.getElementById('adminContent').style.display = 'block';
+                document.getElementById('loginSection').style.display = 'none';
+                renderRoutes();
+            } else {
+                document.getElementById('adminContent').style.display = 'none';
+                document.getElementById('loginSection').style.display = 'block';
+            }
+        }
+        
         // ========== КЛЮЧІ ДЛЯ LOCALSTORAGE ==========
         const ROUTES_KEY = 'railway_routes';
         
@@ -282,6 +370,8 @@
             const routes = getRoutes();
             const container = document.getElementById('routesList');
             const countSpan = document.getElementById('routesCount');
+            
+            if (!container) return;
             
             countSpan.innerText = routes.length;
             
@@ -360,37 +450,43 @@
         }
         
         // ========== ЗБЕРЕЖЕННЯ (CREATE/UPDATE) ==========
-        document.getElementById('routeForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const id = document.getElementById('routeId').value;
-            const routeData = {
-                from: document.getElementById('fromCity').value,
-                to: document.getElementById('toCity').value,
-                time: document.getElementById('time').value,
-                price: parseInt(document.getElementById('price').value),
-                duration: document.getElementById('duration').value,
-                distance: document.getElementById('distance').value,
-                rating: parseFloat(document.getElementById('rating').value),
-                stops: document.getElementById('stops').value
-            };
-            
-            if (id) {
-                updateRoute(id, routeData);
-                Swal.fire('✅ Оновлено!', 'Маршрут успішно оновлено', 'success');
-            } else {
-                addRoute(routeData);
-                Swal.fire('✅ Додано!', 'Новий маршрут додано', 'success');
-            }
-            
-            resetForm();
-            renderRoutes();
-        });
+        const form = document.getElementById('routeForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const id = document.getElementById('routeId').value;
+                const routeData = {
+                    from: document.getElementById('fromCity').value,
+                    to: document.getElementById('toCity').value,
+                    time: document.getElementById('time').value,
+                    price: parseInt(document.getElementById('price').value),
+                    duration: document.getElementById('duration').value,
+                    distance: document.getElementById('distance').value,
+                    rating: parseFloat(document.getElementById('rating').value),
+                    stops: document.getElementById('stops').value
+                };
+                
+                if (id) {
+                    updateRoute(id, routeData);
+                    Swal.fire('✅ Оновлено!', 'Маршрут успішно оновлено', 'success');
+                } else {
+                    addRoute(routeData);
+                    Swal.fire('✅ Додано!', 'Новий маршрут додано', 'success');
+                }
+                
+                resetForm();
+                renderRoutes();
+            });
+        }
         
         // ========== СКАСУВАННЯ ==========
-        document.getElementById('cancelBtn').addEventListener('click', () => {
-            resetForm();
-        });
+        const cancelBtn = document.getElementById('cancelBtn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                resetForm();
+            });
+        }
         
         // ========== ТЕМНА ТЕМА ==========
         function toggleTheme() {
@@ -403,7 +499,7 @@
         }
         
         // ========== ІНІЦІАЛІЗАЦІЯ ==========
-        renderRoutes();
+        showAdminInterface();
     </script>
 </body>
 </html>
