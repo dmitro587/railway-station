@@ -571,3 +571,32 @@ footer {
 .retry-btn:hover {
     background: var(--btn-hover);
 }
+        /* ========== ТЕМНА ТЕМА (ДОДАТКОВО) ========== */
+        body.dark {
+            background: #1a1a2e;
+            color: #eee;
+        }
+        body.dark header {
+            background: #0f3460;
+        }
+        body.dark main {
+            background: #16213e;
+        }
+        body.dark .route-card {
+            background: #1a1a2e;
+            border: 1px solid #2c3e50;
+        }
+        body.dark button {
+            background: #e94560;
+        }
+        body.dark button:hover {
+            background: #c62a48;
+        }
+        body.dark .tag-cloud, body.dark .reviews-carousel {
+            background: #16213e;
+        }
+        body.dark .quick-search input {
+            background: #1a1a2e;
+            border-color: #2c3e50;
+            color: #eee;
+        }
