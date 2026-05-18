@@ -279,7 +279,59 @@
         }
 
         // ========== ЗАПУСК ==========
-        displayRoutes();
+               // ========== ПОГОДА ==========
+        async function getWeather(city) {
+            const weatherMap = {
+                "Київ": "☀️ +22°C",
+                "Львів": "⛅ +18°C",
+                "Одеса": "🌊 +24°C",
+                "Харків": "☁️ +20°C",
+                "Дніпро": "🌤️ +21°C",
+                "Запоріжжя": "☀️ +23°C",
+                "Вінниця": "🌦️ +17°C",
+                "Житомир": "☁️ +16°C",
+                "Чернігів": "🌥️ +15°C",
+                "Суми": "☁️ +14°C",
+                "Полтава": "🌤️ +18°C",
+                "Тернопіль": "⛅ +16°C",
+                "Луцьк": "☁️ +15°C",
+                "Рівне": "🌦️ +14°C",
+                "Хмельницький": "☁️ +16°C",
+                "Чернівці": "☀️ +19°C",
+                "Ужгород": "☀️ +21°C",
+                "Івано-Франківськ": "🌤️ +17°C",
+                "Миколаїв": "☀️ +22°C",
+                "Херсон": "☀️ +23°C",
+                "Кропивницький": "🌤️ +18°C"
+            };
+            return weatherMap[city] || "🌡️ +15°C";
+        }
+               async function displayRoutes() {
+            const container = document.getElementById('popular-routes');
+            if (!container) return;
+            container.innerHTML = '<div class="loading">⏳ Завантаження маршрутів...</div>';
+            const routes = await fetchRoutes();
+            if (!routes || routes.length === 0) {
+                container.innerHTML = '<div class="loading">📭 Немає маршрутів. Додайте в адмінці.</div>';
+                return;
+            }
+            
+            // Показуємо маршрути з погодою
+            const routesHtml = await Promise.all(routes.slice(0, 6).map(async route => {
+                const weather = await getWeather(route.to_city || route.to);
+                return `
+                    <div class="route-card">
+                        <strong>${route.from_city || route.from} → ${route.to_city || route.to}</strong><br>
+                        🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
+                        ⭐ ${route.rating || 0}<br>
+                        🌡️ ${weather}<br>
+                        <button onclick="buyTicket(${route.id})">🎫 Купити</button>
+                        <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
+                    </div>
+                `;
+            }));
+            container.innerHTML = routesHtml.join('');
+        }
         showUserStatus();
     </script>
 </body>
