@@ -1,153 +1,5 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Залізничний вокзал</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; transition: 0.3s; padding: 20px; }
-        body.dark { background: #1a1a2e; color: #eee; }
-        header { background: #003366; color: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; }
-        body.dark header { background: #0f3460; }
-        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; border-radius: 5px; }
-        nav a:hover { background: rgba(255,255,255,0.2); }
-        main { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        body.dark main { background: #16213e; }
-        button { background: #0066cc; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin: 5px; }
-        button:hover { background: #004999; }
-        body.dark button { background: #e94560; }
-        body.dark button:hover { background: #c62a48; }
-        .theme-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; }
-        .route-card { background: white; border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
-        body.dark .route-card { background: #1a1a2e; border: 1px solid #2c3e50; }
-        .route-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .loading { text-align: center; padding: 40px; color: #666; }
-        .datetime-header { display: flex; justify-content: flex-end; font-size: 14px; background: rgba(0,0,0,0.1); padding: 5px 15px; border-radius: 20px; margin-top: 5px; }
-        .datetime-header span { margin-left: 15px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .slider-container { position: relative; max-width: 100%; margin-bottom: 30px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .slider { display: flex; transition: transform 0.5s ease-in-out; }
-        .slide { min-width: 100%; padding: 40px; text-align: center; color: white; }
-        .slide-1 { background: linear-gradient(135deg, #003366, #0066cc); }
-        .slide-2 { background: linear-gradient(135deg, #cc0000, #ff6600); }
-        .slide-3 { background: linear-gradient(135deg, #1a472a, #2e7d32); }
-        .slide h2 { font-size: 2rem; margin-bottom: 10px; }
-        .slide p { font-size: 1.2rem; margin-bottom: 20px; }
-        .slide button { background: white; color: #003366; font-size: 1rem; padding: 12px 30px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
-        .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; font-size: 24px; padding: 10px 15px; cursor: pointer; border-radius: 50%; }
-        .slider-btn:hover { background: rgba(0,0,0,0.8); }
-        .slider-btn.prev { left: 10px; }
-        .slider-btn.next { right: 10px; }
-        .dots { text-align: center; margin-top: 10px; }
-        .dot { display: inline-block; width: 10px; height: 10px; margin: 0 5px; background: #bbb; border-radius: 50%; cursor: pointer; }
-        .dot.active { background: #0066cc; }
-        .tag-cloud { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; text-align: center; }
-        body.dark .tag-cloud { background: #16213e; }
-        .tag { display: inline-block; margin: 5px; padding: 5px 15px; background: rgba(0,102,204,0.1); border-radius: 20px; cursor: pointer; transition: 0.3s; }
-        .tag:hover { background: #0066cc; color: white; transform: scale(1.05); }
-        .tag-1 { font-size: 24px; font-weight: bold; }
-        .tag-2 { font-size: 20px; }
-        .tag-3 { font-size: 16px; }
-        .tag-4 { font-size: 14px; }
-        .reviews-carousel { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; }
-        body.dark .reviews-carousel { background: #16213e; }
-        .reviews-container { display: flex; overflow-x: auto; gap: 20px; scroll-behavior: smooth; padding: 10px 0; }
-        .review-card { min-width: 280px; background: rgba(0,102,204,0.05); border-radius: 12px; padding: 15px; border-left: 4px solid #0066cc; }
-        .review-text { font-style: italic; margin: 10px 0; }
-        .review-author { font-weight: bold; color: #0066cc; }
-        .review-stars { color: #ffc107; font-size: 14px; }
-        .counter-section { text-align: center; padding: 30px; background: linear-gradient(135deg, #003366, #0066cc); border-radius: 15px; color: white; margin-bottom: 30px; }
-        .counter-number { font-size: 3rem; font-weight: bold; }
-        .counter-label { font-size: 1rem; opacity: 0.9; }
-        .promo-banner { background: linear-gradient(135deg, #ff6600, #ff3300); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.9; } 100% { opacity: 1; } }
-        .promo-banner a { color: white; text-decoration: underline; }
-        .quick-search { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .quick-search input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: white; color: #333; }
-        body.dark .quick-search input { background: #1a1a2e; border-color: #2c3e50; color: #eee; }
-        @media (max-width: 768px) { .slide h2 { font-size: 1.2rem; } .tag-1 { font-size: 18px; } .counter-number { font-size: 2rem; } .review-card { min-width: 240px; } .quick-search { flex-direction: column; } }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="header-top">
-            <h1>🚆 Залізничний вокзал</h1>
-            <div class="datetime-header">
-                <span><i class="fas fa-calendar"></i> <span id="currentDate"></span></span>
-                <span><i class="fas fa-clock"></i> <span id="currentTime"></span></span>
-            </div>
-        </div>
-        <nav>
-            <a href="index.html">🏠 Головна</a>
-            <a href="news.html">📰 Новини</a>
-            <a href="schedule.html">📅 Розклад</a>
-            <a href="map.html">🗺 Карта</a>
-            <a href="contacts.html">📞 Контакти</a>
-            <a href="login.html">🔐 Вхід</a>
-            <a href="register.html">📝 Реєстрація</a>
-            <a href="profile.html">👤 Кабінет</a>
-            <a href="admin.html">⚙ Адмін</a>
-        </nav>
-    </header>
-    <main>
-        <div class="promo-banner">🎫 АКЦІЯ! 🎫 При покупці двох квитків – знижка 15%! <a href="schedule.html">➡ Детальніше</a></div>
-
-        <div class="slider-container">
-            <div class="slider" id="slider">
-                <div class="slide slide-1"><h2>🎉 ЗНИЖКА 20%</h2><p>На всі квитки до Львова!</p><button onclick="window.location.href='schedule.html'">Придбати →</button></div>
-                <div class="slide slide-2"><h2>🚆 НОВИЙ ШВИДКІСНИЙ ПОТЯГ</h2><p>Київ → Одеса за 4.5 години!</p><button onclick="window.location.href='schedule.html'">Забронювати →</button></div>
-                <div class="slide slide-3"><h2>⭐ ДИТЯЧИЙ КВИТОК -50%</h2><p>Для дітей до 12 років</p><button onclick="window.location.href='schedule.html'">Детальніше →</button></div>
-            </div>
-            <button class="slider-btn prev" onclick="prevSlide()">❮</button>
-            <button class="slider-btn next" onclick="nextSlide()">❯</button>
-            <div class="dots" id="dots"></div>
-        </div>
-
-        <div class="quick-search">
-            <input type="text" id="quickFrom" placeholder="🚉 Звідки (напр. Київ)">
-            <input type="text" id="quickTo" placeholder="📍 Куди (напр. Львів)">
-            <button onclick="quickSearch()">🔍 Швидкий пошук</button>
-        </div>
-
-        <div class="tag-cloud">
-            <h3>🔥 ПОПУЛЯРНІ НАПРЯМКИ</h3>
-            <div>
-                <span class="tag tag-1" onclick="searchTag('Київ', 'Львів')">Київ → Львів</span>
-                <span class="tag tag-2" onclick="searchTag('Київ', 'Одеса')">Київ → Одеса</span>
-                <span class="tag tag-2" onclick="searchTag('Київ', 'Харків')">Київ → Харків</span>
-                <span class="tag tag-3" onclick="searchTag('Львів', 'Київ')">Львів → Київ</span>
-                <span class="tag tag-3" onclick="searchTag('Одеса', 'Київ')">Одеса → Київ</span>
-                <span class="tag tag-4" onclick="searchTag('Харків', 'Київ')">Харків → Київ</span>
-            </div>
-        </div>
-
-        <div class="reviews-carousel">
-            <h3>💬 ЩО КАЖУТЬ ПАСАЖИРИ</h3>
-            <div class="reviews-container">
-                <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Дуже зручний сайт! Купив квиток за 2 хвилини."</div><div class="review-author">- Андрій</div></div>
-                <div class="review-card"><div class="review-stars">★★★★★</div><div class="review-text">"Чудовий сервіс! QR-код на квитку дуже зручний."</div><div class="review-author">- Олена</div></div>
-                <div class="review-card"><div class="review-stars">★★★★☆</div><div class="review-text">"Все сподобалось, ціни приємні."</div><div class="review-author">- Михайло</div></div>
-            </div>
-        </div>
-
-        <div class="counter-section">
-            <div class="counter-number" id="passengerCounter">10,000</div>
-            <div class="counter-label">🤍 щасливих пасажирів вже подорожували з нами</div>
-        </div>
-
-        <h2>⭐ Популярні маршрути</h2>
-        <div id="popular-routes"><div class="loading">⏳ Завантаження маршрутів...</div></div>
-        <div id="userStatus" class="route-card"></div>
-    </main>
-    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-
     <script>
-        // ========== SUPABASE (УНІКАЛЬНА НАЗВА) ==========
+        // ========== SUPABASE ==========
         const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
         const sbClient = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -214,6 +66,20 @@
         }
         updatePassengerCounter();
 
+        // ========== ПОГОДА ==========
+        async function getWeather(city) {
+            const weatherMap = {
+                "Київ": "☀️ +22°C", "Львів": "⛅ +18°C", "Одеса": "🌊 +24°C",
+                "Харків": "☁️ +20°C", "Дніпро": "🌤️ +21°C", "Запоріжжя": "☀️ +23°C",
+                "Вінниця": "🌦️ +17°C", "Житомир": "☁️ +16°C", "Чернігів": "🌥️ +15°C",
+                "Суми": "☁️ +14°C", "Полтава": "🌤️ +18°C", "Тернопіль": "⛅ +16°C",
+                "Луцьк": "☁️ +15°C", "Рівне": "🌦️ +14°C", "Хмельницький": "☁️ +16°C",
+                "Чернівці": "☀️ +19°C", "Ужгород": "☀️ +21°C", "Івано-Франківськ": "🌤️ +17°C",
+                "Миколаїв": "☀️ +22°C", "Херсон": "☀️ +23°C", "Кропивницький": "🌤️ +18°C"
+            };
+            return weatherMap[city] || "🌡️ +15°C";
+        }
+
         // ========== МАРШРУТИ З SUPABASE ==========
         async function fetchRoutes() {
             try {
@@ -235,15 +101,23 @@
                 container.innerHTML = '<div class="loading">📭 Немає маршрутів. Додайте в адмінці.</div>';
                 return;
             }
-            container.innerHTML = routes.slice(0, 6).map(route => `
-                <div class="route-card">
-                    <strong>${route.from_city || route.from} → ${route.to_city || route.to}</strong><br>
-                    🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
-                    ⭐ ${route.rating || 0}<br>
-                    <button onclick="buyTicket(${route.id})">🎫 Купити</button>
-                    <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
-                </div>
-            `).join('');
+            
+            let html = '';
+            for (let i = 0; i < Math.min(routes.length, 6); i++) {
+                const route = routes[i];
+                const weather = await getWeather(route.to_city || route.to);
+                html += `
+                    <div class="route-card">
+                        <strong>${route.from_city || route.from} → ${route.to_city || route.to}</strong><br>
+                        🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
+                        ⭐ ${route.rating || 0}<br>
+                        🌡️ ${weather}<br>
+                        <button onclick="buyTicket(${route.id})">🎫 Купити</button>
+                        <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
         }
 
         window.buyTicket = function(routeId) {
@@ -279,60 +153,6 @@
         }
 
         // ========== ЗАПУСК ==========
-               // ========== ПОГОДА ==========
-        async function getWeather(city) {
-            const weatherMap = {
-                "Київ": "☀️ +22°C",
-                "Львів": "⛅ +18°C",
-                "Одеса": "🌊 +24°C",
-                "Харків": "☁️ +20°C",
-                "Дніпро": "🌤️ +21°C",
-                "Запоріжжя": "☀️ +23°C",
-                "Вінниця": "🌦️ +17°C",
-                "Житомир": "☁️ +16°C",
-                "Чернігів": "🌥️ +15°C",
-                "Суми": "☁️ +14°C",
-                "Полтава": "🌤️ +18°C",
-                "Тернопіль": "⛅ +16°C",
-                "Луцьк": "☁️ +15°C",
-                "Рівне": "🌦️ +14°C",
-                "Хмельницький": "☁️ +16°C",
-                "Чернівці": "☀️ +19°C",
-                "Ужгород": "☀️ +21°C",
-                "Івано-Франківськ": "🌤️ +17°C",
-                "Миколаїв": "☀️ +22°C",
-                "Херсон": "☀️ +23°C",
-                "Кропивницький": "🌤️ +18°C"
-            };
-            return weatherMap[city] || "🌡️ +15°C";
-        }
-               async function displayRoutes() {
-            const container = document.getElementById('popular-routes');
-            if (!container) return;
-            container.innerHTML = '<div class="loading">⏳ Завантаження маршрутів...</div>';
-            const routes = await fetchRoutes();
-            if (!routes || routes.length === 0) {
-                container.innerHTML = '<div class="loading">📭 Немає маршрутів. Додайте в адмінці.</div>';
-                return;
-            }
-            
-            // Показуємо маршрути з погодою
-            const routesHtml = await Promise.all(routes.slice(0, 6).map(async route => {
-                const weather = await getWeather(route.to_city || route.to);
-                return `
-                    <div class="route-card">
-                        <strong>${route.from_city || route.from} → ${route.to_city || route.to}</strong><br>
-                        🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
-                        ⭐ ${route.rating || 0}<br>
-                        🌡️ ${weather}<br>
-                        <button onclick="buyTicket(${route.id})">🎫 Купити</button>
-                        <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
-                    </div>
-                `;
-            }));
-            container.innerHTML = routesHtml.join('');
-        }
+        displayRoutes();
         showUserStatus();
     </script>
-</body>
-</html>
