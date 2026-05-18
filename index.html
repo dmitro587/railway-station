@@ -9,15 +9,32 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ========== БАНЕР-СЛАЙДЕР ========== */
-        .slider-container {
-            position: relative;
-            max-width: 100%;
-            margin-bottom: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; transition: 0.3s; padding: 20px; }
+        body.dark { background: #1a1a2e; color: #eee; }
+        header { background: #003366; color: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; }
+        body.dark header { background: #0f3460; }
+        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; border-radius: 5px; transition: 0.3s; }
+        nav a:hover { background: rgba(255,255,255,0.2); }
+        main { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        body.dark main { background: #16213e; }
+        button { background: #0066cc; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #004999; }
+        body.dark button { background: #e94560; }
+        body.dark button:hover { background: #c62a48; }
+        .theme-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; }
+        .route-card { background: white; border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.3s; }
+        body.dark .route-card { background: #1a1a2e; border: 1px solid #2c3e50; }
+        .route-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .loading { text-align: center; padding: 40px; color: #666; }
+        
+        /* Годинник */
+        .datetime-header { display: flex; justify-content: flex-end; font-size: 14px; background: rgba(0,0,0,0.1); padding: 5px 15px; border-radius: 20px; margin-top: 5px; }
+        .datetime-header span { margin-left: 15px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        
+        /* Слайдер */
+        .slider-container { position: relative; max-width: 100%; margin-bottom: 30px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .slider { display: flex; transition: transform 0.5s ease-in-out; }
         .slide { min-width: 100%; padding: 40px; text-align: center; color: white; }
         .slide-1 { background: linear-gradient(135deg, #003366, #0066cc); }
@@ -33,60 +50,41 @@
         .dots { text-align: center; margin-top: 10px; }
         .dot { display: inline-block; width: 10px; height: 10px; margin: 0 5px; background: #bbb; border-radius: 50%; cursor: pointer; }
         .dot.active { background: #0066cc; }
-
-        /* ========== ХМАРА ТЕГІВ ========== */
-        .tag-cloud { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 30px; text-align: center; }
+        
+        /* Хмара тегів */
+        .tag-cloud { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; text-align: center; }
+        body.dark .tag-cloud { background: #16213e; }
         .tag { display: inline-block; margin: 5px; padding: 5px 15px; background: rgba(0,102,204,0.1); border-radius: 20px; cursor: pointer; transition: 0.3s; }
         .tag:hover { background: #0066cc; color: white; transform: scale(1.05); }
         .tag-1 { font-size: 24px; font-weight: bold; }
         .tag-2 { font-size: 20px; }
         .tag-3 { font-size: 16px; }
         .tag-4 { font-size: 14px; }
-
-        /* ========== ЖИВІ ВІДГУКИ ========== */
-        .reviews-carousel { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 30px; }
+        
+        /* Відгуки */
+        .reviews-carousel { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; }
+        body.dark .reviews-carousel { background: #16213e; }
         .reviews-container { display: flex; overflow-x: auto; gap: 20px; scroll-behavior: smooth; padding: 10px 0; }
         .review-card { min-width: 280px; background: rgba(0,102,204,0.05); border-radius: 12px; padding: 15px; border-left: 4px solid #0066cc; }
         .review-text { font-style: italic; margin: 10px 0; }
         .review-author { font-weight: bold; color: #0066cc; }
         .review-stars { color: #ffc107; font-size: 14px; }
-
-        /* ========== ЛІЧИЛЬНИК ПАСАЖИРІВ ========== */
+        
+        /* Лічильник */
         .counter-section { text-align: center; padding: 30px; background: linear-gradient(135deg, #003366, #0066cc); border-radius: 15px; color: white; margin-bottom: 30px; }
         .counter-number { font-size: 3rem; font-weight: bold; }
         .counter-label { font-size: 1rem; opacity: 0.9; }
-
-        /* ========== ГОДИННИК ========== */
-        .datetime-header { display: flex; justify-content: flex-end; font-size: 14px; background: rgba(0,0,0,0.1); padding: 5px 15px; border-radius: 20px; margin-top: 5px; }
-        .datetime-header span { margin-left: 15px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-
-        /* ========== АКЦІЇ ========== */
+        
+        /* Акції */
         .promo-banner { background: linear-gradient(135deg, #ff6600, #ff3300); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.9; } 100% { opacity: 1; } }
         .promo-banner a { color: white; text-decoration: underline; }
-
-        /* ========== ШВИДКИЙ ПОШУК ========== */
+        
+        /* Швидкий пошук */
         .quick-search { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .quick-search input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
-
-        /* Базові стилі */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; transition: all 0.3s ease; padding: 20px; }
-        body.dark { background: #1a1a2e; color: #eee; }
-        :root { --bg: #f0f2f5; --card: white; --text: #333; --border: #ddd; --btn: #0066cc; --header: #003366; }
-        body.dark { --bg: #1a1a2e; --card: #16213e; --text: #eee; --border: #2c3e50; --btn: #0f3460; --header: #0f3460; }
-        header { background: var(--header); color: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; }
-        header h1 { margin-bottom: 10px; }
-        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; border-radius: 5px; transition: 0.3s; }
-        nav a:hover { background: rgba(255,255,255,0.2); }
-        main { max-width: 1400px; margin: 0 auto; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        button { background: #0066cc; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin: 5px; }
-        button:hover { background: #004999; }
-        .theme-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; }
-        .route-card { transition: all 0.3s ease; background: var(--card); border-radius: 15px; padding: 15px; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .route-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-        .loading { text-align: center; padding: 40px; color: #666; }
+        .quick-search input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: white; color: #333; }
+        body.dark .quick-search input { background: #1a1a2e; border-color: #2c3e50; color: #eee; }
+        
         @media (max-width: 768px) { .slide h2 { font-size: 1.2rem; } .tag-1 { font-size: 18px; } .counter-number { font-size: 2rem; } .review-card { min-width: 240px; } .quick-search { flex-direction: column; } }
     </style>
 </head>
@@ -112,12 +110,8 @@
         </nav>
     </header>
     <main>
-        <!-- Акції -->
-        <div class="promo-banner">
-            🎫 АКЦІЯ! 🎫 При покупці двох квитків – знижка 15%! Діє до кінця місяця. <a href="schedule.html">➡ Детальніше</a>
-        </div>
+        <div class="promo-banner">🎫 АКЦІЯ! 🎫 При покупці двох квитків – знижка 15%! <a href="schedule.html">➡ Детальніше</a></div>
 
-        <!-- Банер-слайдер -->
         <div class="slider-container">
             <div class="slider" id="slider">
                 <div class="slide slide-1"><h2>🎉 ЗНИЖКА 20%</h2><p>На всі квитки до Львова!</p><button onclick="window.location.href='schedule.html'">Придбати →</button></div>
@@ -129,14 +123,12 @@
             <div class="dots" id="dots"></div>
         </div>
 
-        <!-- Швидкий пошук -->
         <div class="quick-search">
             <input type="text" id="quickFrom" placeholder="🚉 Звідки (напр. Київ)">
             <input type="text" id="quickTo" placeholder="📍 Куди (напр. Львів)">
             <button onclick="quickSearch()">🔍 Швидкий пошук</button>
         </div>
 
-        <!-- Хмара тегів -->
         <div class="tag-cloud">
             <h3>🔥 ПОПУЛЯРНІ НАПРЯМКИ</h3>
             <div>
@@ -149,7 +141,6 @@
             </div>
         </div>
 
-        <!-- Відгуки -->
         <div class="reviews-carousel">
             <h3>💬 ЩО КАЖУТЬ ПАСАЖИРИ</h3>
             <div class="reviews-container">
@@ -159,17 +150,14 @@
             </div>
         </div>
 
-        <!-- Лічильник пасажирів -->
         <div class="counter-section">
             <div class="counter-number" id="passengerCounter">10,000</div>
             <div class="counter-label">🤍 щасливих пасажирів вже подорожували з нами</div>
         </div>
 
         <h2>⭐ Популярні маршрути</h2>
-        <div id="popular-routes">
-            <div class="loading">⏳ Завантаження маршрутів з хмари...</div>
-        </div>
-        <div id="userStatus" class="route-card" data-user-status></div>
+        <div id="popular-routes"><div class="loading">⏳ Завантаження маршрутів...</div></div>
+        <div id="userStatus" class="route-card"></div>
     </main>
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
@@ -178,9 +166,9 @@
         const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
         let supabase;
-if (typeof window.supabaseJs !== 'undefined') {
-    supabase = window.supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+        if (typeof supabaseJs !== 'undefined') {
+            supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
 
         // ========== ГОДИННИК ==========
         function updateDateTime() {
@@ -246,6 +234,7 @@ if (typeof window.supabaseJs !== 'undefined') {
 
         // ========== МАРШРУТИ З SUPABASE ==========
         async function fetchRoutes() {
+            if (!supabase) return [];
             try {
                 const { data, error } = await supabase.from('routes').select('*').order('id');
                 if (error) throw error;
@@ -259,16 +248,12 @@ if (typeof window.supabaseJs !== 'undefined') {
         async function displayRoutes() {
             const container = document.getElementById('popular-routes');
             if (!container) return;
-            
-            container.innerHTML = '<div class="loading">⏳ Завантаження маршрутів з хмари...</div>';
-            
+            container.innerHTML = '<div class="loading">⏳ Завантаження маршрутів...</div>';
             const routes = await fetchRoutes();
-            
             if (!routes || routes.length === 0) {
                 container.innerHTML = '<div class="loading">📭 Немає маршрутів. Додайте в адмінці.</div>';
                 return;
             }
-            
             container.innerHTML = routes.slice(0, 6).map(route => `
                 <div class="route-card">
                     <strong>${route.from_city || route.from} → ${route.to_city || route.to}</strong><br>
@@ -302,61 +287,19 @@ if (typeof window.supabaseJs !== 'undefined') {
         }
         window.logout = function() { localStorage.removeItem('current_user'); location.reload(); };
 
-               /* ========== ТЕМНА ТЕМА (ДОДАТКОВІ СТИЛІ) ========== */
-        body.dark 
-            background: #1a1a2e;
-            color: #eee;
-        }
-        body.dark header {
-            background: #0f3460;
-        }
-        body.dark main {
-            background: #16213e;
-        }
-        body.dark .route-card {
-            background: #1a1a2e;
-            border: 1px solid #2c3e50;
-        }
-        body.dark button {
-            background: #e94560;
-        }
-        body.dark button:hover {
-            background: #c62a48;
-        }
-        body.dark .tag-cloud, body.dark .reviews-carousel {
-            background: #16213e;
-        }
-        body.dark .quick-search input {
-            background: #1a1a2e;
-            border-color: #2c3e50;
-            color: #eee;
-        }
-        body.dark .counter-section {
-            background: linear-gradient(135deg, #0f3460, #1a472a);
-        }
-        body.dark .promo-banner {
-            background: linear-gradient(135deg, #cc0000, #ff3300);
-        }
         // ========== ТЕМНА ТЕМА ==========
-function toggleTheme() {
-    if (document.body.classList.contains('dark')) {
-        document.body.classList.remove('dark');
-        document.body.style.backgroundColor = '#f0f2f5';
-        document.body.style.color = '#333';
-        localStorage.setItem('theme', 'light');
-    } else {
-        document.body.classList.add('dark');
-        document.body.style.backgroundColor = '#1a1a2e';
-        document.body.style.color = '#eee';
-        localStorage.setItem('theme', 'dark');
-    }
-}
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+        }
 
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
-    document.body.style.backgroundColor = '#1a1a2e';
-    document.body.style.color = '#eee';
-}
+        // ========== ЗАПУСК ==========
+        displayRoutes();
+        showUserStatus();
     </script>
 </body>
 </html>
