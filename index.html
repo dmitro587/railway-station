@@ -302,16 +302,41 @@ if (typeof window.supabaseJs !== 'undefined') {
         }
         window.logout = function() { localStorage.removeItem('current_user'); location.reload(); };
 
-        // ========== ТЕМНА ТЕМА ==========
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+               /* ========== ТЕМНА ТЕМА (ДОДАТКОВІ СТИЛІ) ========== */
+        body.dark {
+            background: #1a1a2e;
+            color: #eee;
         }
-        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-
-        // ========== ЗАПУСК ==========
-        displayRoutes();
-        showUserStatus();
+        body.dark header {
+            background: #0f3460;
+        }
+        body.dark main {
+            background: #16213e;
+        }
+        body.dark .route-card {
+            background: #1a1a2e;
+            border: 1px solid #2c3e50;
+        }
+        body.dark button {
+            background: #e94560;
+        }
+        body.dark button:hover {
+            background: #c62a48;
+        }
+        body.dark .tag-cloud, body.dark .reviews-carousel {
+            background: #16213e;
+        }
+        body.dark .quick-search input {
+            background: #1a1a2e;
+            border-color: #2c3e50;
+            color: #eee;
+        }
+        body.dark .counter-section {
+            background: linear-gradient(135deg, #0f3460, #1a472a);
+        }
+        body.dark .promo-banner {
+            background: linear-gradient(135deg, #cc0000, #ff3300);
+        }
     </script>
 </body>
 </html>
