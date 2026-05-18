@@ -313,10 +313,13 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
-        // Supabase клієнт
-        const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
-        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ========== ІНІЦІАЛІЗАЦІЯ SUPABASE (без дублювання) ==========
+        let supabase;
+        if (typeof supabaseJs !== 'undefined') {
+            const SUPABASE_URL = 'https://rvngppzmkhwwbdnauduo.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_2wv2wpymRS-9NcFyqCFWDA_aSUwASzY';
+            supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
 
         // ========== ГОДИННИК ТА ДАТА ==========
         function updateDateTime() {
@@ -413,18 +416,61 @@
             }
         }
 
-        // ========== ОТРИМАННЯ МАРШРУТІВ З SUPABASE ==========
-        async function fetchRoutes() {
-            const { data, error } = await supabase
-                .from('routes')
-                .select('*')
-                .order('id');
+        // ========== ПОПУЛЯРНІ МАРШРУТИ (ЛОКАЛЬНІ, ЯКЩО SUPABASE НЕ ПРАЦЮЄ) ==========
+        const localRoutes = [
+            { from: "Київ", to: "Львів", time: "08:00", price: 450, duration: "5 год", rating: 5 },
+            { from: "Київ", to: "Одеса", time: "09:30", price: 420, duration: "4.5 год", rating: 5 },
+            { from: "Київ", to: "Харків", time: "07:15", price: 380, duration: "4.5 год", rating: 4 },
+            { from: "Київ", to: "Дніпро", time: "10:00", price: 350, duration: "4 год", rating: 4 },
+            { from: "Київ", to: "Запоріжжя", time: "11:30", price: 400, duration: "5 год", rating: 4 },
+            { from: "Львів", to: "Київ", time: "07:00", price: 460, duration: "5.5 год", rating: 5 }
+        ];
+
+        function displayLocalRoutes() {
+            const container = document.querySelector('[data-popular-routes]');
+            if (!container) return;
             
-            if (error) {
-                console.error('Supabase error:', error);
-                throw new Error(error.message);
+            container.innerHTML = "";
+            localRoutes.forEach(route => {
+                const div = document.createElement("div");
+                div.className = "route-card";
+                div.innerHTML = `
+                    <div>
+                        <strong>${route.from} → ${route.to}</strong><br>
+                        🕐 ${route.time} | 💰 ${route.price} грн | ⏱ ${route.duration}<br>
+                        <span style="color:#ffc107;">${'⭐'.repeat(route.rating)}</span>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button onclick="alert('Функція покупки в розробці')">🎫 Купити</button>
+                        <button onclick="alert('⭐ Додано до вибраного')">⭐ Вибране</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ========== ОТРИМАННЯ МАРШРУТІВ З SUPABASE ==========
+        async function fetchRoutesFromSupabase() {
+            if (!supabase) {
+                console.log('Supabase не ініціалізовано, використовую локальні дані');
+                return null;
             }
-            return data || [];
+            
+            try {
+                const { data, error } = await supabase
+                    .from('routes')
+                    .select('*')
+                    .order('id');
+                
+                if (error) {
+                    console.error('Supabase error:', error);
+                    return null;
+                }
+                return data || [];
+            } catch (err) {
+                console.error('Помилка запиту до Supabase:', err);
+                return null;
+            }
         }
 
         // ========== ВІДОБРАЖЕННЯ МАРШРУТІВ ==========
@@ -435,10 +481,12 @@
             showState(container, 'loading');
             
             try {
-                const routes = await fetchRoutes();
+                let routes = await fetchRoutesFromSupabase();
                 
+                // Якщо Supabase не дав дані, використовуємо локальні
                 if (!routes || routes.length === 0) {
-                    showState(container, 'empty');
+                    console.log('Використовую локальні маршрути');
+                    displayLocalRoutes();
                     return;
                 }
                 
@@ -447,12 +495,10 @@
                     const div = document.createElement("div");
                     div.className = "route-card";
                     div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <strong>${escapeHtml(route.from_city)} → ${escapeHtml(route.to_city)}</strong><br>
-                                🕐 ${escapeHtml(route.time)} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
-                                <span style="color:#ffc107;">${'⭐'.repeat(Math.floor(route.rating || 0))}</span>
-                            </div>
+                        <div>
+                            <strong>${escapeHtml(route.from_city)} → ${escapeHtml(route.to_city)}</strong><br>
+                            🕐 ${escapeHtml(route.time)} | 💰 ${route.price} грн | ⏱ ${route.duration || '3 год'}<br>
+                            <span style="color:#ffc107;">${'⭐'.repeat(Math.floor(route.rating || 0))}</span>
                         </div>
                         <div style="margin-top:10px;">
                             <button onclick="alert('Функція покупки в розробці')">🎫 Купити</button>
@@ -463,7 +509,7 @@
                 });
             } catch (error) {
                 console.error('Помилка:', error);
-                showState(container, 'error', error.message);
+                displayLocalRoutes();
             }
         }
 
