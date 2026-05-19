@@ -301,5 +301,54 @@
     showTime();
     setInterval(showTime, 1000);
 </script>
+    <script>
+    console.log('✅ Сайт завантажився');
+    
+    // Тест кнопок
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            console.log('Натиснуто кнопку:', this.innerText);
+        });
+    });
+    
+    // Тест пошуку
+    window.quickSearch = function() {
+        const from = document.getElementById('quickFrom')?.value;
+        const to = document.getElementById('quickTo')?.value;
+        alert('Пошук: ' + from + ' → ' + to);
+    };
+    
+    window.searchTag = function(from, to) {
+        alert('Тег: ' + from + ' → ' + to);
+    };
+    
+    window.buyTicket = function() {
+        alert('Купівля квитка (тест)');
+    };
+    
+    window.toggleTheme = function() {
+        document.body.classList.toggle('dark');
+        alert('Тема змінена!');
+    };
+    
+    // Заповнюємо маршрути якщо порожньо
+    const container = document.getElementById('popular-routes');
+    if (container && container.innerHTML.includes('Завантаження')) {
+        container.innerHTML = `
+            <div class="route-card">
+                <strong>Київ → Львів</strong><br>
+                🕐 08:00 | 💰 450 грн<br>
+                <button onclick="buyTicket()">🎫 Купити</button>
+                <button onclick="alert('⭐ Вибране')">⭐ Вибране</button>
+            </div>
+            <div class="route-card">
+                <strong>Київ → Одеса</strong><br>
+                🕐 09:30 | 💰 420 грн<br>
+                <button onclick="buyTicket()">🎫 Купити</button>
+                <button onclick="alert('⭐ Вибране')">⭐ Вибране</button>
+            </div>
+        `;
+    }
+</script>
 </body>
 </html>
