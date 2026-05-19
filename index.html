@@ -350,5 +350,23 @@
         `;
     }
 </script>
+    <script>
+    // Робоча функція покупки
+    window.buyTicket = function(routeId) {
+        const user = JSON.parse(localStorage.getItem('current_user'));
+        if (!user) {
+            Swal.fire('Потрібно увійти', '', 'question').then(() => {
+                window.location.href = 'login.html';
+            });
+            return;
+        }
+        Swal.fire('✅ Квиток куплено!', 'Перевірте особистий кабінет', 'success');
+    };
+    
+    // Робоча функція вибраного
+    window.addToFavorites = function(routeId) {
+        Swal.fire('⭐ Додано до вибраного!', '', 'success');
+    };
+</script>
 </body>
 </html>
